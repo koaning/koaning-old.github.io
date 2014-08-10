@@ -1,0 +1,109 @@
+
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<style>
+	body {
+	  padding-top: 30px;
+	}
+	.starter-template {
+	  padding: 40px 15px;
+	  text-align: center;
+	}
+	pre{
+		border:0px;
+		border-radius: 0px; 
+	}
+	code{
+		background-color: #f5f5f5;
+		color: black;
+	}
+
+	iframe.graph{
+		border: 0;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="starter-template">
+			
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-2"><p></p></div>
+		<div class="col-md-8">
+
+<a href="http://koaning.com">back to main</a>
+
+<h1>rock paper starcraft</h1>
+in this blog post i am going to explore representations of different games through graphs. 
+
+<h3>rock paper scissors</h3>
+<p> a simple game of rock paper scissors can be represented through a graph. a node is a choice of a player, an edge is the outcome. if you move your mouse over a node, let's say paper, you will see the nodes that it will beat (rock) and the nodes that will beat it (scissors).</p>
+
+<iframe height="204px" width="300px" class="graph" src="/html/rockpaperstarcraft/rockpaper.html"></iframe>
+
+<h3>rock paper scissors lizzard spock</h3>
+
+<p> this game can be evolved into something more complex, <a href="https://www.youtube.com/watch?v=iapcKVn7DdY">as seen in the big bang theory</a>. but we would still be able to represent this game through a graph. </p>
+
+<iframe height="204px" width="300px" class="graph" src="/html/rockpaperstarcraft/bigbang.html"></iframe>
+
+<p> the interesting thing is that we can see that a game is balanced if the graph is symmetric. if there is no symmetry then a player might be able to exploit a game in a phenomenon. </p>
+
+<h3>enter starcraft</h3>
+
+<p> personally i feel like starcraft is one of the most complex games out there, so i was wondering if such a game representation would allow me to make the game more comprehendable. i used the official starcraft website as a source of data. for every unit in the game the website lists opponing units that are good or bad against that unit. with this data I was able to create the following graph; </p>
+
+<iframe height="500px" width="600px" class="graph" src="/html/rockpaperstarcraft/starcraft.html"></iframe>
+
+<p> the game obviously involves a lot more than just simply choosing units and the data that i am using is far from enough to state that i have just completely visualised the game. but you can notice the following things; </p>
+<ul> 
+	<li> the color of a node in the graph denotes if a unit was either zerg, protoss or terran. notice how the races of starcraft are evenly distributed on the graph </li> 
+	<li> notice that the worker units have clustered together </li>
+	<li> if you force one type of unit you become very vunerable unless you are countering an opponent </li>
+	<li> notice how the graph seems to be symmetric </li>
+</ul>
+
+<h3>desert strike</h3>
+
+<p> again, the game of starcraft requires more skills than just knowledge of the units, so i won't be able to use this to my advantage to a normal game. there are user generated games of starcraft in arcade mode that don't require you to control your units however, so those games might be more hackable with this graph representation. the most popular of these maps is called 'desert strike' so i decided to make a small tool to assist me in these games. </p> 
+
+<p> i've added some fancy d3 functionality to it so that you can select what your opponent throws at you to help you determine what units you should be making. in this graph, you can now click the nodes such that you can keep track an opponents army.</p> 
+
+<iframe height="500px" width="600px" class="graph" src="/html/rockpaperstarcraft/starcraft2.html"></iframe>
+
+<p> i actually got better at desert strike by using this. i didn't win each game, but using this it became much clearer what units i needed to use to counter other units. all despite the fact that the representation is <u>very</u> basic. you could make such a graph more accurate, but you would need more advanced data. </p>
+
+	</div>
+<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'koaningcom'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+	</div>
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>

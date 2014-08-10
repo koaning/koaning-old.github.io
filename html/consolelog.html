@@ -1,0 +1,371 @@
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="/js/prism.js"></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<style>
+	body {
+	  padding-top: 30px;
+	}
+	.starter-template {
+	  padding: 40px 15px;
+	  text-align: center;
+	}
+	pre{
+		border:0px;
+		border-radius: 0px; 
+	}
+	code{
+		background-color: #f5f5f5;
+		color: black;
+	}
+	button{
+		margin-bottom: 20px; 
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="starter-template">
+			
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-2"><p></p></div>
+		<div class="col-md-8">
+
+<a href="http://koaning.com">back to main</a>
+<h1>Console Giggles</h1>
+
+<p> After reading some blogs, forums and docs I've discovered some new things that you can do with the browsers console. Although it's not always directly applicable to anything useful I learned a lot from it and decided to share a few funny querks.  </p> 
+
+<h2> Two Moments of Console </h2>
+
+<p>It all started with something that seemed like a bug. Imagine the following javascript code; </p>
+
+<pre><code class="language-javascript">object = {list:[1]};
+console.log(object);
+object.list.push(1);
+</code></pre>
+
+<button style="margin-left:45%;" onClick='object = {list:[1]};console.log(object);object.list.push(1);'>Try this.</button>
+
+<p>What is the length of the list in the object? An oddity in chrome's console is that you will first see;</p> 
+
+<pre><code class="language-javascript">Object {list: Array[1]}
+</code></pre> 
+
+<p> And only apon expanding will you see that the object contains the updated list; </p> 
+
+<pre><code class="language-javascript">list: Array[2]
+</code></pre>
+
+<p> This is because the initial display is generated when the console first logs it. After expanding, it loads all of the object's properties, and if the properties have changed in between logging it and opening it, it will show different values. When the object is expanded you will see a light-blue 'i' icon that you can hover over, Chrome will explain this to you. </p> 
+
+<p> At first this was completely new to me, I decided it might be useful to explore how the console should behave and what else it might do that I was not aware of. </p> 
+
+
+<h2> CSS Console.log  </h2> 
+
+<p> Did you know you can send css-style to your chrome console? </p> 
+
+<p> Open up devtools (CMD+ALT+J) and try this command; </p> 
+
+<pre><code class="language-javascript">console.log("%c Red text.","color: red;")
+</code></pre>
+
+<button style="margin-left:45%;" onClick='console.log("%c Red text.","color: red;")'>Try this.</button>
+
+<p> Or; </p> 
+
+<pre><code class="language-javascript">console.log("%c Green text.","color: green;")
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='console.log("%c Green text.","color: green;")'>Try this.</button>
+
+<p> Or even; </p> 
+
+<pre><code class="language-javascript">console.log("%cDont make me angry. You wont like me when Im angry.","color: green; font-size:25px;font-weight: bold;")
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='console.log("%cDont make me angry. You wont like me when Im angry.","color: green; font-size:25px;font-weight: bold;")'>Try this.</button>
+
+<p> If you want full controll of your testing output this might come in very handy. I have had plenty of nasty clients who console.log anything and everything. If I want to use such a console, I can use a color code to distinguish what my print outputs are. </p> 
+
+<p> You can go completely nuts with any css style you want. If you want to annoy a developer you can fog the console with the following snippet; </p> 
+
+<pre><code class="language-javascript">var _log = console.log;
+console.log = function() {
+  _log.call(console, '%c' +[].slice.call(arguments).join(' '), 'color:transparent;text-shadow:0 0 2px rgba(0,0,0,.5);');
+};
+</code></pre> 
+
+<p>I purposefully did not add a try this button. This changes the original <code> console.log </code> function such that everything will be printed out blurry. This code will break the rest of the code that is next.</p> 
+
+<h3> CSS Console.Image </h3> 
+
+<p> We can get even more freaky. Because all css seems to be allowed in the console, that means we could also import images. </p> 
+
+<pre><code class="language-javascript">console.log("placeholder kitten %c", "background: url(http://placekitten.com/300/300); padding-right: 300px; font-size: 171px; text-align: center")
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='console.log("placeholder kitten %c", "background: url(http://placekitten.com/300/300); padding-right: 300px; font-size: 171px; text-align: center")'>Try this.</button>
+
+<p> It's not just still images, also moving images in the shape of `.gif` files can be shown. </p> 
+
+<pre><code class="language-javascript">console.log("moving kitten %c", "background: url('http://i.imgur.com/TanUtXo.gif'); padding-right: 300px; font-size: 250px; text-align: center")
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='console.log("moving kitten %c", "background: url(http://i.imgur.com/TanUtXo.gif); padding-right: 300px; font-size: 250px; text-align: center")'>Try this.</button>
+
+
+<h3> Console.table </h3> 
+<p> The console doesn't just allow for logs, it also allowed for tables.</p> 
+
+<pre><code class="language-javascript">function Cat(firstName, petName, food){
+this.firstName = firstName;
+this.petName = petName;
+this.food = food;
+}
+
+var cats = {};
+cats.cat1 = new Cat('Bigglesworth','Smuffy','fish')
+cats.cat2 = new Cat('Tom','Not Jerry','mice')
+cats.cat3 = new Cat('Sylvester','Tweety','birds')
+ 
+console.table(cats);
+</code></pre>
+
+<script type="text/javascript">
+function Cat(firstName, petName, food){
+    this.firstName = firstName;
+    this.petName = petName;
+    this.food = food;
+}
+ 
+var cats = {};
+cats.cat1 = new Cat('Bigglesworth','Smuffy','fish')
+cats.cat2 = new Cat('Tom','Not Jerry','mice')
+cats.cat3 = new Cat('Sylvester','Tweety','birds')
+
+
+function randColors(){
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 15)];
+    }
+    return color;
+}
+
+var colors = []
+var str = ""
+for (var i = 0; i < 30; i++) {
+	str += '%c '
+	var color = getRandomColor()
+	colors.push( 'background:' + color )
+};
+
+console.log("New line of random colors:")
+console.log.apply(console, [str].concat(colors))
+}
+
+function indicator( num ){  
+    // +1 would be green, -1 would be red 
+    var letters = '0123456789ABCDEF'.split(''),
+        greenIdx = Math.max( Math.min( Math.round( 8*num + 8 ),15),0),
+        greenVal = letters[ greenIdx ];
+        redIdx = Math.max( Math.min( Math.round(-8*num + 8 ),15),0),
+        redVal = letters[ redIdx ];
+    return '#'+redVal+redVal+greenVal+greenVal+'06'
+}
+
+var data = [ 0 ] ;
+
+function plotColors(){  
+    if( data.length>30){
+        data.shift( )
+    }
+    var new_number = data[ data.length - 1] + Math.random() - 0.5
+    data.push( Math.min( Math.max( new_number, -1), 1 ) )
+
+    var colors = [];
+    var str = "";
+
+    for (var i = 0; i < data.length; i++) {
+        str += '%c ';
+        var color = indicator( data[i] );
+        colors.push( 'background:' + color + ';')
+    };
+    console.clear();
+    console.log("Performance metrics :" + data[ data.length - 1 ]);
+    console.log.apply(console, [str].concat(colors));
+}
+</script> 
+
+<button style="margin-left:45%;" onClick='console.table(cats);'>Try this.</button>
+
+<p> Note that the table is able to sort items alphabetically for you. </p> 
+
+<h3>Check time.</h3>
+
+<p> The console can also keep track of time for you. This is useful when you want to check which implementation of your algoritm runs faster.</p>
+<pre><code class="language-javascript">console.clear() 
+console.time('fast');
+for(var i=0; i< 100000; i++){
+  2+2*3;
+}
+console.timeEnd('fast');
+
+console.time('slow');
+for(var i=0; i< 100000; i++){
+  Math.sin(Math.random())
+}
+console.timeEnd('slow');
+
+</code></pre>
+
+<button style="margin-left:45%;" onClick='timeit()'>Try this.</button>
+<script>
+	function timeit(){
+		console.time('fast');
+		for(var i=0; i< 100000; i++){
+		  1+1;
+		}
+		console.timeEnd('fast');
+
+		console.time('slow');
+		for(var i=0; i< 100000; i++){
+		  Math.sin(Math.random())
+		}
+		console.timeEnd('slow');
+	}
+</script>
+
+<h3> Console.count </h3> 
+
+<p>The console can also be used to keep track of how often a function is called. This is useful becauase it removes the need to build your own counters while debugging.</p>
+
+<pre><code class="language-javascript">function scream(){
+	console.log('ice cream')
+	console.count('scream')
+}
+</code></pre>
+
+<button style="margin-left:45%;" onClick="console.log('ice cream');console.count('scream')">Try this.</button>
+
+<h3>Console Edit Document</h3>
+
+<p>This line of code will allow you to change to website you are watching as if it were a text document. </p>
+
+<pre><code class="language-javascript">document.body.contentEditable = true;
+</code></pre>
+
+<p>Just hover over any text on the page, click it and type. This feature was implemented by Microsoft to allow developers to make rich text editors on the web. The funniest thing is that this actually turns on the spelling check as you are typing on the webpage.</p>
+
+<button style="margin-left:45%;" onClick='document.body.contentEditable = true;'>Try this.</button>
+
+
+<h3> Console.viz </h3> 
+
+<p> You shouldn't want a visualisation in your console but you could try and build one. By using `console.log.apply` we can control the css style of independant characters in a string. We will be using the empty character `" "` such that we can give it a background-color that can show visual aspects. </p> 
+
+<pre><code class="language-javascript">console.clear() 
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 15)];
+    }
+    return color;
+}
+
+var colors = []
+var str = ""
+for (var i = 0; i < 30; i++) {
+	str += '%c '
+	var color = getRandomColor()
+	colors.push( 'background:' + color )
+};
+
+console.log("New line of random colors:")
+console.log.apply(console, [str].concat(colors))
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='randColors()'>Try this.</button>
+
+<p> This just shows random colors, but we can assign meaning to these colors. With a little bit of javascript we could simulate some streaming data going in; </p> 
+
+<pre><code class="language-javascript">function indicator( num ){
+	// +1 would be green, -1 would be red 
+	var letters = '0123456789ABCDEF'.split(''),
+		greenIdx = Math.max( Math.min( Math.round( 8*num + 8 ),15),0),
+		greenVal = letters[ greenIdx ];
+		redIdx = Math.max( Math.min( Math.round(-8*num + 8 ),15),0),
+		redVal = letters[ redIdx ];
+	return '#'+redVal+redVal+greenVal+greenVal+'06'
+}
+
+var data = [ 0 ] ;
+
+function plotColors(){
+	if( data.length>30){
+		data.shift( )
+	}
+	var new_number = data[ data.length - 1] + Math.random() - 0.5
+	data.push( Math.min( Math.max( new_number, -1), 1 ) )
+	
+	var colors = [];
+	var str = "";
+	yyyy
+	for (var i = 0; i < data.length; i++) {
+		str += '%c ';
+		var color = indicator( data[i] );
+		colors.push( 'background:' + color + ';')
+	};
+	console.clear();
+	console.log("Performance metrics :" + data[ data.length - 1 ]);
+	console.log.apply(console, [str].concat(colors));
+}
+
+var interval = setInterval( plotColors, 200);
+// to stop it : clearInterval(interval)
+</code></pre> 
+
+<button style="margin-left:45%;" onClick='var interval = setInterval( plotColors, 200)'>Try this.</button>
+
+<p>Honestly though, as fun as it may be, I think that if you are going make a visualisation, you should refrain from building it in your console. </p> 
+
+	<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'koaningcom'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+	</div>
+	</div>
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>

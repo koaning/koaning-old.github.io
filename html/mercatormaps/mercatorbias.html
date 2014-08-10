@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<style>
+
+body{
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 450px;
+}
+
+svg {
+  position: relative;
+}
+
+path {
+  fill: #000;
+  fill-opacity: .2;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+path:hover {
+  fill: brown;
+  fill-opacity: .7;
+}
+
+</style>
+
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+  
+
+<div id="map" class="leaflet-container leaflet-fade-anim" tabindex="0" style="position: relative;">
+
+<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js?2"></script>
+<script>
+
+var map = new L.Map("map", {center: [37.8, -96.9], zoom: 2})
+    .addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
+
+  window.myLayer = L.geoJson().addTo(map);
+  
+  map.on("mousemove", function(d){ 
+    Object.keys(myLayer._layers).map(function(d){ myLayer.removeLayer( myLayer._layers[d] ) })
+
+    window.coords = [
+      [d.latlng.lng + 4, d.latlng.lat + 4],
+      [d.latlng.lng + 4, d.latlng.lat - 4],
+      [d.latlng.lng - 4, d.latlng.lat - 4 ],
+      [d.latlng.lng - 4, d.latlng.lat + 4 ],
+      [d.latlng.lng + 4, d.latlng.lat + 4]
+    ];
+
+    window.geojsonFeature = {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+          "type": "Polygon",
+          "coordinates": [coords]
+      }
+    };
+
+    myLayer.addData(geojsonFeature);
+
+  });
+</script>
+</body></html>

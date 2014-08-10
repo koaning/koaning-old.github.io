@@ -1,0 +1,223 @@
+
+<head>
+<script src="../../js/prism.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <style>
+        svg{
+            width:100%;
+            height: 400px; 
+        }
+        
+        circle{
+            fill: white;
+            stroke: steelblue;
+            stroke-width: 2px;
+            stroke-opacity: 0.5;
+        }
+
+        circle.circledrag{
+            stroke-width: 5px;
+            stroke: orange;
+        }
+        
+        path.ship{
+            stroke: green;
+            stroke-width: 2px;
+            fill: none;
+            stroke-opacity: 0.7;
+        }
+
+        svg#game{
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+        </div>
+        <div class="row">
+            <svg></svg>
+        </div>
+    </div>
+    <script>
+
+        var DOWNKEY = false,
+            UPKEY = false, 
+            LEFTKEY = false, 
+            RIGHTKEY = false,
+            SHOOTING = false;
+
+        function makeid(){
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+            for( var i=0; i < 5; i++ )
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+            return text;
+        }
+
+        var svg = d3.select("svg").attr("id","game").on("mousemove", function(d){
+            mouseloc = d3.mouse(this);
+        })
+
+
+        var svgHeight = Number(svg.style('height').replace("px","")),
+            svgWidth = Number(svg.style('width').replace("px",""));
+        
+        svg.append("rect")
+            .attr("x", svgWidth/3)
+            .attr("y", svgHeight/3)
+            .attr("width", svgWidth/3)
+            .attr("height", svgHeight/3)
+            .style("fill", "steelblue")
+            .style("fill-opacity", 0.2)
+
+
+        d3.select("body").on("keydown", function(){
+            // the body can receive keydown events, svg elements cannot
+            if( d3.event.keyCode == 87 ){
+                UPKEY = true; 
+            }
+            if( d3.event.keyCode == 83 ){
+                DOWNKEY = true; 
+            }
+            if( d3.event.keyCode == 65 ){
+                LEFTKEY = true; 
+            }
+            if( d3.event.keyCode == 68 ){
+                RIGHTKEY = true; 
+            }
+            if( d3.event.keyCode == 32){
+                SHOOTING = true; 
+            }
+        });
+
+        d3.select("body").on("keyup", function(){
+            if( d3.event.keyCode == 87 ){
+                UPKEY = false; 
+            }
+            if( d3.event.keyCode == 83 ){
+                DOWNKEY = false; 
+            }
+            if( d3.event.keyCode == 65 ){
+                LEFTKEY = false; 
+            }
+            if( d3.event.keyCode == 68 ){
+                RIGHTKEY = false; 
+            }
+            if( d3.event.keyCode == 32){
+                SHOOTING = false; 
+            }
+        })
+
+        shipObj = function(startCoords){
+            var shipObj = {}; 
+            shipObj.rotation = -Math.PI / 2; 
+            shipObj.velocity = 0;
+            shipObj.size = 20;
+            shipObj.id = makeid()
+            shipObj.maxVelocity = 2; 
+
+            if( typeof(startCoords) == 'undefined' ){
+                shipObj.coords = {x:svgWidth/2, y:svgHeight/2}
+            }else{
+                shipObj.coords = startCoords
+            }
+
+            shipObj.init = function(){
+                shipObj.shipSvg = svg.append("g")
+                    .attr("id", shipObj.id)
+
+                shipObj.shipSvg.append("path")
+                    .attr("class","ship")
+                    .attr("id", shipObj.id);
+            }
+
+            shipObj.drawShip = function(){
+                // console.log(shipObj.id)
+                d3.select("path.ship#" + shipObj.id).attr("d", function(d){
+                    return "M" + 
+                    (shipObj.coords.x+shipObj.size*Math.cos(shipObj.rotation))  + "," + 
+                    (shipObj.coords.y+shipObj.size*Math.sin(shipObj.rotation)) + "L" +
+                    (shipObj.coords.x+shipObj.size/1.5*Math.cos(shipObj.rotation+2*Math.PI/3)) + "," + 
+                    (shipObj.coords.y+shipObj.size/1.5*Math.sin(shipObj.rotation+2*Math.PI/3)) + "L" +
+                    (shipObj.coords.x+shipObj.size/1.5*Math.cos(shipObj.rotation+4*Math.PI/3))  + "," + 
+                    (shipObj.coords.y+shipObj.size/1.5*Math.sin(shipObj.rotation+4*Math.PI/3)) + "L" + 
+                    (shipObj.coords.x+shipObj.size*Math.cos(shipObj.rotation)) + "," + 
+                    (shipObj.coords.y+shipObj.size*Math.sin(shipObj.rotation)) 
+                })
+            }
+
+            shipObj.forward = function(){
+                shipObj.coords.x += shipObj.size*Math.cos(shipObj.rotation)/4*shipObj.velocity;
+                shipObj.coords.y += shipObj.size*Math.sin(shipObj.rotation)/4*shipObj.velocity;
+            }
+
+            window.setInterval( function(){
+                // this is the update for the draw loop 
+                if( shipObj.coords.y > svgHeight ){
+                    shipObj.coords.y = 0
+                }
+                if( shipObj.coords.y < 0 ){
+                    shipObj.coords.y = svgHeight
+                }
+                if( shipObj.coords.x > svgWidth  ){
+                    shipObj.coords.x = 0
+                }
+                if( shipObj.coords.x < 0 ){
+                    shipObj.coords.x = svgWidth
+                }
+                if( UPKEY == true ){
+                    shipObj.velocity += 0.1;
+                    shipObj.velocity = Math.min(shipObj.velocity, shipObj.maxVelocity);
+                    shipObj.forward()
+                }else{
+                    shipObj.velocity -= 0.1; 
+                    shipObj.velocity = Math.max(0, shipObj.velocity);
+                    shipObj.forward()
+                }
+                if( RIGHTKEY == true ){
+                    shipObj.rotation += 0.1;
+                }
+                if( LEFTKEY == true ){
+                    shipObj.rotation -= 0.1;
+                }
+                if( SHOOTING == true ){
+
+                }
+                shipObj.drawShip()
+            }, 25);
+
+            return shipObj;
+        };       
+
+        var ship1 = new shipObj({x:svgWidth/6, y:svgHeight/6})
+        var ship2 = new shipObj({x:svgWidth/2, y:svgHeight/6})
+        var ship3 = new shipObj({x:svgWidth*5/6, y:svgHeight/6})
+
+        var ship4 = new shipObj({x:svgWidth/6, y:svgHeight/2})
+        var ship5 = new shipObj({x:svgWidth/2, y:svgHeight/2})
+        var ship6 = new shipObj({x:svgWidth*5/6, y:svgHeight/2})
+
+        var ship7 = new shipObj({x:svgWidth/6, y:svgHeight*5/6})
+        var ship8 = new shipObj({x:svgWidth/2, y:svgHeight*5/6})
+        var ship9 = new shipObj({x:svgWidth*5/6, y:svgHeight*5/6})
+
+        ship1.init()
+        ship2.init()
+        ship3.init()
+        ship4.init()
+        ship5.init()
+        ship6.init()
+        ship7.init()
+        ship8.init()
+        ship9.init()
+    </script>
+</body>

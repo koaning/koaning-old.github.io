@@ -1,0 +1,198 @@
+	<meta name='viewport' content="width=device-width">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<script src="/js/prism.js"></script>
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+	<link rel="stylesheet" href="/css/prism.css">
+	<style>
+	body {
+	  padding-top: 30px;
+	}
+	.starter-template {
+	  padding: 40px 15px;
+	  text-align: center;
+	}
+	pre{
+		border:0px;
+		border-radius: 0px; 
+	}
+	code{
+		background-color: #f5f5f5;
+		color: black;
+	}
+
+	iframe.graph{
+		border: 0;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="starter-template">
+
+
+
+# Neo4j language network
+
+So lets do something fun with big graphs. We are going to do a quick install of neo4j. We will then create a graph of the most common bigrams in the english language and perform some queries on it. 
+
+> If you don't know what neo4j is, it is a graph database. It acts like a database in the sense that you can query it but the underlying datastructure is not a table or a document store but a graph. More information [here](http://neo4j.org/learn). 
+
+This document is intended both as a bare minimum introduction on cypher, the neo4j query language as well as an introduction to bigram analysis. In this document I only assume that you know what a graph is and that you know what a database is.  
+
+# What we will make. 
+
+# Setup 
+
+### Neo4j Setup
+
+1. Go to neo4j.org and press the big download button.
+2. Unzip contents to a folder and cd to it via terminal.
+3. From the folder you just unzipped, type:
+
+ ```➜  ./bin/neo4j start```
+ 
+ This will start the neo4j server from the ```bin``` folder.  
+ 
+4. Now that the server has started you can type ```localhost:7474``` in your webbrowser to confirm that the neo4j server has been successfully set up. 
+
+### Download Bigrams  
+
+1. Go to [http://www.ngrams.info](http://www.ngrams.info) and download 1000000 non case sensitive bigrams found. Exact link can be found [here]([This link](http://example.net/). 
+2. Unzip this file and check that the file contains the following first lines; 
+
+```
+➜  head -15 w2.txt
+275	a	a
+31	a	aaa
+29	a	all
+45	a	an
+192	a	and
+39	a	another
+25	a	at
+82	a	b
+45	a	b+
+26	a	b-17
+31	a	b-2
+54	a	b-52
+39	a	b-movie
+40	a	b-plus
+168	a	b.a
+```
+
+The ```w2.txt``` file contains a tab seperated file that has three columns; the frequency of the bigram, the first word and the second word. We will use this file to contruct a tree. 
+
+### Upload data to Neo 
+
+##### 1. Start the neo4j shell by typing: 
+
+```
+➜  ./bin/neo4j-shell
+Welcome to the Neo4j Shell! Enter 'help' for a list of commands
+NOTE: Remote Neo4j graph database service 'shell' at port 1337
+
+neo4j-sh (?)$
+```
+
+##### 2. Pass the following import script into the shell. 
+
+Copy and paste the following snippet. 
+
+```
+CREATE CONSTRAINT ON (w:Word) ASSERT w.value IS UNIQUE;
+USING PERIODIC COMMIT
+LOAD CSV FROM
+  "file:/Users/code/Downloads/w2.txt"
+  AS line
+  FIELDTERMINATOR '\t'
+MERGE (w1:Word { value: toString(line[1]) })
+MERGE (w2:Word { value: toString(line[2]) })
+CREATE (w1)-[:LINK { value : toInt(line[0])} ]->(w2);
+```
+This is not a cheap operation. I have the latest macbook and it takes about 2-3 minutes to load. Be humble though, we've just uploaded most of the englisch language in our little local database. 
+
+# Cypher 
+
+Cypher is the query language that Neo4j uses. It will feel familiar to SQL but more flexible. For more info, check the [syntax reference](http://docs.neo4j.org/refcard/1.9/).
+
+All of the queries below can be passed in either the neo4j console or the localhost:7474 website you already opened. 
+
+### Basic Queries 
+
+These queries will look for a node in the network that is connected to another node. We can add ```where``` statements to only consider certain nodes or edges in the graph. In effect these queries look for bigrams. 
+
+##### Find 10 bigrams that start with "a"
+```
+match (w1)-[l1]->(w2) 
+where w1.value='a' 
+return w1,l1,w2 
+limit 10;
+```
+
+##### Find 10 bigrams that start with "zoo"
+```
+match (w1)-[l1]->(w2) 
+where w1.value='zoo' 
+return w1,l1,w2 
+limit 10;
+```
+
+##### Find 10 bigrams that don't start with "a" and have a frequency that is larger than 35000
+```
+match (w1)-[l1]->(w2) 
+where l1.value>35000 and NOT w1.value = 'a'
+return w1,l1,w2 
+limit 20;
+```
+### Basic Queries 
+
+##### Find the most frequently used bigrams
+```
+match (w1:Word)-[l1]->(w2:Word) 
+return w1,l1,w2
+order by l1.value descending
+limit 20;
+```
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+<a href="http://koaning.com">back to main</a>
+	</div>
+	   		<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'koaningcom'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+	</div>
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>

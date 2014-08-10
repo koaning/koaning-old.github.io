@@ -1,0 +1,487 @@
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="/css/prism.css">
+<script src="/js/prism.js"></script>
+<style>
+	div#output{
+		font-size:11px;
+		font-family: "Lucida Console", Monaco, monospace;
+		color: darkred;		
+	}
+	body {
+	  padding-top: 30px;
+	}
+	input[type="text"]
+	{
+		font-size:11px;
+		font-family: "Lucida Console", Monaco, monospace;
+	}
+	.starter-template {
+	  padding: 40px 15px;
+	  text-align: center;
+	}
+	pre{
+		border:0px;
+		border-radius: 0px; 
+	}
+	code{
+		background-color: #f5f5f5;
+		color: black;
+	}
+
+	iframe.graph{
+		border: 0;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+	 .fixed {    
+	    position: fixed;     
+	    top: 20px;    
+	    margin-left: 720px;    
+	    background-color: #0f0 ! important; 
+	} 
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="starter-template">
+			
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<a href="http://koaning.com">back to main</a>
+		</div>
+		<div class="col-md-2"></div>
+		<div class="col-md-10">
+				<h1>D3.format tutorial through examples</h1>
+<p> The <a href="https://github.com/mbostock/d3/wiki/Formatting">documentation</a> on the working of <code>d3.format</code> is complete but could use some more examples for novice users of javascript/d3. If you are viewing this on a wide screen device you can use the format editor to the left to check live format output. </p>
+		</div>
+		<div id="sidebar-container" class="col-sm-2">
+			<div id="sidebar">
+				<h5>format string</h5>
+				<input type="text" id="format" class="form-control" placeholder="FORMAT">
+				<h5>input number</h5>
+				<input type="text" id="number" class="form-control" placeholder="NUMBER">
+				<h5>output string</h5>
+				<div id="output"></div>
+			</div>
+		</div>
+		<div class="col-sm-10">
+			<div class="row">
+				<div class="col-md-12">
+
+<h2>An Empty Formatter </h2>
+
+<p> The <code>d3.format</code> function takes a string as input and returns a function that converts a number to a string. It's goal is to help display numbers in the right format using a sort of 'regex-like' syntax. You can save a formatter in a variable or you can use the formatter directly. </p>
+
+<p> One could save the formatter in a variable. </p>
+
+<pre><code class="language-javascript">var formatter = d3.format("");
+formatter(2)
+</code></pre>
+
+<p> Or create it and immediately use it. </p>
+
+<pre><code class="language-javascript">d3.format("")(2);</code></pre>
+
+<p> Both return a string <code>"2"</code>. </p>
+
+<p> The string that the formatter needs as input need to follow the following specification: </p>
+
+<pre>[[fill]align][sign][symbol][0][width][,][.precision][type]</pre>
+
+<p> During the examples I will focus on what part of the specification we are using throughout the tutorial. </p>
+
+<h2>Simple types </h2>
+
+<p> At the very end of the format input string you can place a type. </p>
+
+<pre>[[fill]align][sign][symbol][0][width][,][.precision]<b>[type]</b></pre>
+
+</div>
+<div class="col-md-4">
+	<h4> Exponential Numbers <code>"e"</code> </h4>
+
+<pre><code class="language-javascript">d3.format("e")(2000);
+d3.format("e")(2000.0);
+d3.format("e")(20003010);
+d3.format("e")(0.000001);
+</code></pre>
+
+<p> An exponential type will show the amount of 10-exponents that the number contains. In the background this calls the <code>.toExponential</code> method on the number that the formatter receives. </p>
+</div>
+
+<div class="col-md-4">
+<h4>Integers <code>"d"</code> </h4>
+
+
+<pre><code class="language-javascript">d3.format("d")(20);
+d3.format("d")(1000.0);
+d3.format("d")(1000.000001);
+d3.format("d")(-1.12);
+</code></pre>
+
+<p> This was confusing for me in the beginning because I assumed that "d" stood for double. It does the exact opposite. It ignores non-integer values. </p>
+</div>
+
+<div class="col-md-4">
+<h4> Rounded Percentage <code>%</code></h4>
+
+
+<pre><code class="language-javascript">d3.format("%")(1);
+d3.format("%")(0.999);
+d3.format("%")(+0.12);
+d3.format("%")(-0.12);
+</code></pre>
+
+<p> This multiplies the number times 100 and appends a "%" symbol at the end of the string. </p>
+</div>
+<div class="col-md-12">
+	<h4>Scientific Prefix <code>"s"</code></h4>
+</div>
+<div class="col-md-6">
+<p> Converts numbers to SI units. </p>
+<pre><code class="language-javascript">d3.format("s")(1000);
+d3.format("s")(0.000001);
+d3.format("s")(1000);
+</code></pre>
+</div>
+<div class="col-md-6">
+<p> This can be combined with a string. </p>
+
+<pre><code class="language-javascript">d3.format("s")(1000) + 'm';
+d3.format("s")(0.000001) + 'g';
+d3.format("s")(25) + 'ms';
+</code></pre>
+This can be tried out in de console for full output. 
+</div>
+<div class="col-md-12">
+<h2>Uncommon Types</h2>
+
+<p> I've never felt the need for these types of numbers in my visualisations but for completeness you should also be aware of these types. </p>
+</div>
+<div class="col-md-4">
+<h4> Binary Format</h4>
+
+<p> Convert to base two number. </p>
+
+<pre><code class="language-javascript">d3.format("b")(1);
+d3.format("b")(8)
+d3.format("b")(16)
+d3.format("b")(2012)
+</code></pre>
+	
+</div>
+<div class="col-md-4">
+<h4> Octal Format </h4>
+
+Convert to base 8 number. 
+
+<pre><code class="language-javascript">d3.format("o")(1)
+d3.format("o")(8)
+d3.format("o")(16)
+d3.format("o")(2012)
+</code></pre>
+</div>
+<div class="col-md-4">
+<h4>Hexadecimal Format</h4>
+
+Convert to base 16 number.
+
+<pre><code class="language-javascript">d3.format("x")(17)
+d3.format("x")(2012)
+d3.format("X")(17)
+d3.format("X")(2012)
+</code></pre>
+
+Note, use "x" for lowercase and "X" for capital hexnumber. 
+</div>
+<br> 
+
+<div class="col-md-12">
+
+<h4>Unicode Format</h4>
+
+<p> Any unicode character is mapped to a number. Formatting from unicode table index number to character is done via "c". </p>
+
+<pre><code class="language-javascript">d3.format("c")(1000)
+</code></pre>
+
+<p> This also means that you can go through the entire unicode list if you are inclined. The first 1001 can be seen via; </p>
+
+<pre><code class="language-javascript">d3.range(1001).map(d3.format("c"))</code></pre>
+
+<h2>Types with Precision </h2>
+
+<p> Thusfar we have only discussed types. Certain types require a precision paramters to be passed along. </p>
+
+<pre>[[fill]align][sign][symbol][0][width][,]<b>[.precision][type]</b></pre>
+
+</div>
+<div class="col-md-4">
+<h4> General <code>"g"</code> </h4>
+
+
+<pre><code class="language-javascript">d3.format("g")(2000);
+d3.format("g")(2000.0);
+d3.format("g")(2000.03010);
+d3.format("g")(0.01012);
+</code></pre>
+
+<h4> With Precision </h4>
+
+<pre><code class="language-javascript">d3.format(".1g")(0.987654);
+d3.format(".2g")(0.987654);
+d3.format(".3g")(0.987654);
+</code></pre>
+
+<p> A precision type provides precision total length numerical output. This calls the <code>.toPrecision</code> method on the number that the formatter receives.</p>
+
+</div>
+
+<div class="col-md-4">
+<h4> Fixed <code>"f"</code> </h4>
+
+
+<pre><code class="language-javascript">d3.format("f")(2000);
+d3.format("f")(2000.0);
+d3.format("f")(2000.03010);
+d3.format("f")(0.01012);
+</code></pre>
+
+<h4> With Precision </h4>
+<pre><code class="language-javascript">d3.format(".1g")(0.987654);
+d3.format(".2g")(0.987654);
+d3.format(".3g")(0.987654);
+</code></pre>
+
+<p> A fixed type provides precision length after the decimal point. In the background this calls the <code>.toFixed</code> method on the number that the formatter receives.</p>
+</div>
+
+<div class="col-md-4">
+<h4>Rounded <code>"r"</code></h4>
+
+
+<pre><code class="language-javascript">d3.format("r")(2000);
+d3.format("r")(2000.0);
+d3.format("r")(2000.03010);
+d3.format("r")(0.01012);
+</code></pre>
+
+<h4> With Precision </h4>
+<pre><code class="language-javascript">d3.format(".1g")(0.987654);
+d3.format(".2g")(0.987654);
+d3.format(".3g")(0.987654);
+</code></pre>
+
+<p> An general type will round the number to a fixed number. In the background this calls the <code>.toFixed</code> method on the number that the formatter receives.</p>
+</div>
+
+<div class="col-md-12">
+	<h4> Difference </h4>
+	<p> These three methods are very similar. To emphesize the minor differences: </p>
+<pre><code class="language-javascript">d3.format(".4g")(3.14159); //"3.142"
+d3.format(".4f")(3.14159); //"3.1416"
+</code></pre>
+</div>
+
+<div class="col-md-12">
+<h2> Thousands Seperator </h2>
+<pre>[[fill]align][sign][symbol][0][width]<b>[,][.precision][type]</b></pre>
+<p> Especially when dealing with monetary values a thousands seperator might be useful. The seperator can be combined with anything we have just discussed. </p>
+</div>
+
+<div class="col-md-6">
+<pre><code class="language-javascript">d3.format(",")(1000000);    //"1,000,000"
+d3.format(",")(1010101);    //"1,010,101"
+d3.format(",.4g")(1010101); //"1.010e+6"
+</code></pre>
+</div>
+<div class="col-md-6">
+<pre><code class="language-javascript">d3.format(",.4e")(1010101); //"1.0101e+6"
+d3.format(",.4f")(1010101); //"1.0101e+6"
+d3.format(".2f")(10101);    //"10,101.00"
+</code></pre>
+</div>
+
+<div class="col-md-12">
+<h2> Width </h2>
+
+<pre>[[fill]align][sign][symbol][0]<b>[width][,][.precision][type]</b></pre>
+
+<p> If you want you can specify a minimum width that the output string of the formatter needs to have. This might be usefull if you want to list thousands numbers on top of eachother in a clear overview.</p>
+<pre><code class="language-javascript">d3.format("8")(1);      //"       1"
+d3.format("8,.2f")(1);  //"    1.00"
+d3.format("8g")(1e6);   //" 1000000"
+</code></pre>
+<p> Note that the string parser will recognize precision if it is preceeded by a "<code>.</code>" or will otherwise be recognized as a width. If the precision will cause the output to be larger than the specified with then the width is ignored. If no width is passed to the format then it is determined by the content.</p>
+</div>
+
+<div class="col-md-12">
+<h2> Zero Padding </h2>
+<pre>[[fill]align][sign][symbol]<b>[0][width][,][.precision][type]</b></pre>
+<p>If the width parameter is prepended with a <code>0</code> then zeros will be added in front of the string.</p>
+
+<pre><code class="language-javascript">d3.format("8")(1234);          //"    1234"
+d3.format("08")(1234);         //"00001234"
+d3.format("08.2f")(123.456);   //"00123.46"
+d3.format("08.3f")(123.456);   //"0123.456"
+</code></pre>
+<p> Be aware that you need to be rather aware of what you are doing. If you combine the thousands seperator while you are prepending zeroes then you might end up with something you don't want.</p>
+
+<pre><code class="language-javascript">d3.format("09,")(123456);      //"0,123,456"
+</code></pre>
+</div>
+
+<div class="col-md-12">
+	<h2>Symbols</h2>
+	<p>According to the docs symbols can be either a currency that is determined by your locale or a base for binary, octal or hexagonal numbers.</p>
+	<pre>[[fill]align][sign]<b>[symbol][0][width][,][.precision][type]</b></pre>
+	<p> The currency works pretty straightforward. </p>
+<pre><code class="language-javascript">d3.format("$,")(1250);         //"$1,250"
+d3.format("$,.2f")(1250);      //"$1,250.00"
+</code></pre>
+	<p> For binary, octal, or hexadecimal output, prefix by <code>0b</code>, <code>0o</code>, or <code>0x</code>, respectively. The <code>#</code> character can be used to force the type character as part of the output.</p>
+<div class="col-md-6">
+<pre><code class="language-javascript">d3.format("0b")(125);  //"1111101"
+d3.format("0o")(125);  //"175"
+d3.format("0x")(125);  //"7d"
+</code></pre>
+</div>
+<div class="col-md-6">
+<pre><code class="language-javascript">d3.format("#0b")(125);  //"0b1111101"
+d3.format("#0o")(125);  //"0o175"
+d3.format("#0x")(125);  //"0x7d"
+</code></pre>
+</div>
+</div>
+
+<div class="col-md-12">
+	<h2>Symbols</h2>
+	<pre>[[fill]align]<b>[sign][symbol][0][width][,][.precision][type]</b></pre>
+	<p> Symbols are characters that determine how to view negative/postive values. The documentation is clear on how a sign can be used, it can be: </p>
+	<ul>
+		<li><code>"-"</code> - indicating that a sign should be used only for negative numbers. (This is the default.)</li>
+		<li><code>"+"</code> - indicating that a sign should be used for both positive and negative numbers.</li>
+		<li><code>" "</code> - indicating that a leading space should be used on positive numbers, and a minus sign on negative numbers.</li>
+	</ul>
+<pre><code class="language-javascript">d3.format("+")(125);  //"+125"
+d3.format("+")(-125); //"-125"
+d3.format("-")(125);  //"125"
+d3.format("-")(-125); //"-125"
+d3.format(" ")(125);  //" 125"
+d3.format(" ")(-125); //"-125"
+</code></pre>
+</div>
+
+<div class="col-md-12">
+	<h2>Alignment and Fill</h2>
+	<pre><b>[[fill]align][sign][symbol][0][width][,][.precision][type]</b></pre>
+	<p> You can also align the formatter output string with any character you want as long as it isn't <code>{</code> or <code>}</code>. You will need to tell the formatter how you want to align characters and what character to use as the fill. The fill character would need to preseed an alignment indicator:</p>
+	<ul>
+		<li><code>"<"</code> - left alignment</li>
+		<li><code>">"</code> - right alignment</li>
+		<li><code>"^"</code> - center alignment</li>
+	</ul>
+	
+	<p> Here are some more examples that might help explain. </p>
+<pre><code class="language-javascript">d3.format("4>8")(1); //"44444441"
+d3.format("4^8")(1); //"44441444"
+d3.format("4<8")(1); //"14444444"
+</code></pre>
+<p>	What we are basically saying is that the output string needs 8 characters and requires a certain alignment. The character that we will use is 4 and depending on the alignment it will be added in front, around or after the number passed to the formatter. </p> 
+</div>
+
+<div class="col-md-12">
+	<h2>Conclusion</h2>
+	<p>Hopefully this guide has helped you understand the format syntax of d3 a bit better. To further challange yourself feel free to use the lefthand tool for some advanced explorations.</p>
+	<p> These more advanced exercizes might help to get you started on more advanced formats: </p>
+	<ol>
+		<li> Suppose drive a car and we know that it has driven 1231542.0431 meters and we want to know how many kilometer the car has driven, what would the appropriate formatter be?</li>
+		<li> What format would the most clean to show dollars and cents on an invoice?</li>
+		<li> What will <code>d3.format("4>100")("")</code>do?</li>
+		<li> Why is there no difference between <code>d3.format("e")</code> and <code>d3.format(",e")</code>?</li>
+	</ol>
+</div>
+<div class="col-md-12">
+<br><br><br>
+<a href="http://koaning.com">back to main</a>
+<br><br><div id="disqus_thread"></div>
+</div>
+	</div>
+	   		
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'koaningcom'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+	</div>
+</div>
+
+<script>
+
+	$('#sidebar').affix({
+		offset:{
+			top:15
+		}
+	}).width("100")
+
+	if( $(window).width() < 800){
+		$('#sidebar').hide();
+	}
+
+	$(window).resize( function(){
+		if( $(window).width() < 800){
+			$('#sidebar').hide();
+		}else{
+			$('#sidebar').show();
+		}
+		$('input').on('keyup', function() {
+		var formatval = $("input#format").val(), 
+			inputnum  = $("input#number").val();
+			$("input#output").val(d3.format(formatval)(inputnum));
+		});
+	})
+
+	$('input').on('keyup', function() {
+		var formatval = $("input#format").val(), 
+			inputnum  = $("input#number").val();
+		$("div#output").text(d3.format(formatval)(inputnum));
+	});
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>

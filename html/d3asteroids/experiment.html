@@ -1,0 +1,77 @@
+
+<head>
+    <script src="../../js/prism.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="../../js/numeric.js"></script>
+
+    <style>
+        svg{
+            width:100%;
+            height: 400px; 
+        }
+        
+        circle{
+            fill: white;
+            stroke: steelblue;
+            stroke-width: 2px;
+            stroke-opacity: 0.5;
+        }
+
+        line{
+            fill: white;
+            stroke: steelblue;
+            stroke-width: 2px;
+            stroke-opacity: 0.5;
+        }
+
+        circle.circledrag{
+            stroke-width: 5px;
+            stroke: orange;
+        }
+        
+        path.ship{
+            stroke: green;
+            stroke-width: 2px;
+            fill: none;
+            stroke-opacity: 0.7;
+        }
+
+        svg#game{
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+        </div>
+        <div class="row">
+            <svg></svg>
+        </div>
+    </div>
+    <script>
+    var points = [[20,20,20],[40,20,20],[40,40,20],[20,40,20],[20,20,20],[20,20,40],[20,40,40],[40,40,40],[40,20,40]];
+
+    for(i in points){
+        d3.select("svg").append("circle")
+        .attr("r", 1)
+        .attr("cx", points[i][0] + points[i][2]*Math.sqrt(0.4) )
+        .attr("cy", points[i][1] + points[i][2]*Math.sqrt(0.4) );
+    }
+
+    for (var i = points.length - 2; i >= 0; i--) {
+      console.log(points[i+1][0], points[i][0]);
+      d3.select("svg").append("line")
+        .attr("x1", points[i][0] + points[i][2]*Math.sqrt(0.4))
+        .attr("y1", points[i][1] + points[i][2]*Math.sqrt(0.4))
+        .attr("x2", points[i+1][0] + points[i+1][2]*Math.sqrt(0.4))
+        .attr("y2", points[i+1][1] + points[i+1][2]*Math.sqrt(0.4));
+    };
+
+
+    </script>
+</body>

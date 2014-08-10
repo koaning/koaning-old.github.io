@@ -1,0 +1,139 @@
+<head>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+
+<style>
+    .mouseover{
+        stroke: orange;
+        stroke-opacity: 0.9;
+        stroke-width: 5;
+    }    
+</style>
+
+    <script>
+    var graph = {
+      "nodes":[
+        {"color":"green","id":1},
+        {"color":"green","id":2},
+        {"color":"green","id":3},
+        {"color":"green","id":4},
+        {"color":"green","id":5},
+      ],
+      "links":[
+        {"source":0,"target":1},
+        {"source":1,"target":2},
+        {"source":2,"target":3},
+        {"source":3,"target":4},
+        {"source":4,"target":0},
+        {"source":2,"target":0},
+      ]
+    }
+
+    var clickNode = function(node_d){
+        click.play();
+        node_d.color = nextColor(node_d.color)
+        for(var n in connectedNodes(node_d)){
+            connectedNodes(node_d)[n].color = nextColor(connectedNodes(node_d)[n].color)
+        }
+        node.style("fill", function(d) { return d.color; })
+    }
+
+    var connectedNodes = function(d){
+        result = [] 
+        for( var e in force.links()){
+            if( d === force.links()[e].source ){
+                result.push( force.links()[e].target )
+            }
+            if( d === force.links()[e].target ){
+                result.push( force.links()[e].source )
+            }
+        }
+        return result 
+    }
+
+    var nextColor = function(color){
+        if( color == "green" ){
+            return "blue"
+        }else if(color=="blue"){
+            return "red"
+        }else{
+            return "green"
+        }
+    }
+
+    var width = 960,
+        height = 500;
+
+    var color = d3.scale.category20();
+
+    var force = d3.layout.force()
+        .charge(-120)
+        .linkDistance(60)
+        .size([width, height]);
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    force.nodes(graph.nodes)
+        .links(graph.links)
+        .start();
+
+    var link = svg.selectAll(".link")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("class", "link")
+        .style("stroke-width", 3)
+        .style("stroke", "#666")
+        .style("stroke-opacity", 0.5);
+
+    var node = svg.selectAll(".node")
+        .data(graph.nodes)
+        .enter().append("circle")
+        .attr("class", "node")
+        .attr("r", 15)
+        .style("fill", function(d) { return d.color; })
+        .style("opacity", 0.9)
+        .on("mouseover", function(d){
+          d3.select(this).classed({"mouseover":true})
+        })
+        .on("mouseout", function(d){
+          d3.select(this).classed({"mouseover":false})
+        })
+        .on("click", function(d){
+            clickNode(d);
+        })
+        .call(force.drag);
+
+    node.append("title")
+        .text(function(d) { return d.name; });
+
+    force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    });
+
+    clickNode( graph.nodes[2] )
+    </script>
+
+    <script>
+        var click = new Audio('../audio/mouseclick.wav'); 
+    </script>
+
+</body>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-3', 'auto');
+  ga('send', 'pageview');
+
+</script>
