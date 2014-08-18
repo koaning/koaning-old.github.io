@@ -42,7 +42,7 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <h1>Cloudy Leaflet</h1>
+      <h1>Creating a Cloudy Leaflet</h1>
       <p>In this small document I will describe how to make dynamic clouds appear on a leaflet map using d3.</p>
       <h2>Creating a Cloud.</h2>
       <p>The cloud that I want to create will consist of several circles that together form a cloud that has a shaded opacity. You need to apply a css-trick to get this to work properly. Consider the following started code:</p>
@@ -156,24 +156,7 @@ group.selectAll("circles")
 
   <div class="col-md-6">
       <h4>javascript</h4>
-<pre><code class="language-javascript">var cloud3 = d3.select("#cloud2").append("svg")
-  .attr("width","100%")
-  .attr("height",200);
-
-var group = cloud2.append("g")
-  .style("opacity", 0.5)
-  .style("fill", "steelblue");
-
-group.selectAll("circles")
-  .data(circle_data).enter()
-  .append("circle")
-  .attr("class","cloud1")
-  .attr("cx", function(d){return d[0]})
-  .attr("cy", function(d){return d[1]})
-  .attr("r", function(d){return d[2]})
-  .style("fill", "steelblue");
-
-setInterval( function(){
+<pre><code class="language-javascript">setInterval( function(){
   group.transition()
     .attr("transform", "translate(" + Math.random() * 200 + ", 0)")
 }, 1000)
@@ -187,7 +170,7 @@ setInterval( function(){
 <script>
 var cloud3 = d3.select("#cloud3").append("svg")
   .attr("width","100%")
-  .attr("height",200);
+  .attr("height",100);
 
 var group = cloud3.append("g")
   .style("opacity", 0.5)
@@ -207,6 +190,11 @@ setInterval( function(){
     .attr("transform", "translate(" + Math.random() * 200 + ", 0)")
 }, 1000)
 </script>
+
+<div class="col-md-12">
+  <h2>Dealing with Leaflet</h2>
+  <p>It might be useful to review Mike Bostocks <a href="http://bost.ocks.org/mike/leaflet/">tutorial</a> on how to combine leaflet with d3 before moving on. We need to append svg elements to a leaflet layer and keep in mind that we need to slightly alter out coordinates to fit correctly to the surface of the round earth. Also, we will not be using GEOJSON to create these clouds, but we will be using a simple array instead.</p>
+</div>
 
 
   <div class="col-md-12">

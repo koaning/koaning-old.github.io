@@ -39,7 +39,7 @@
 <div class="alert alert-warning">
 	The library that I am discussing is meant for testing a website but it COULD also be used for scraping. It is <b>YOUR</b> responsibility that you scrape websites responsibly, not mine. 
 </div>
-<p>scraping static websites is easy. to protect themselves against scrapers (and because of the load on the servers) many websites implement javascript to load data asynchronosly when a user requests a website. in such a situation the client needs to wait before all the javascript is executed before all html is generated. in these cases you cannot use libraries like <code> urllib </code> and <code> requests</code> to retreive all the data. </p>
+<p>scraping static websites is easy. to protect themselves against scrapers (and because of the load on the servers) many websites implement javascript to load data asynchronosly when a user requests a website. in such a situation the client needs to wait before all the javascript is executed before all html is generated. in these cases you cannot use libraries like <code> urllib </code> and <code> requests</code> to retreive the html data. </p>
 <h3>enter selenium</h3>
 <p> fortunately, there is a nice python library called <code>selenium</code> that emulates a browser for you which will still allow you to automate the collection of online data. in it's origin it is a java library but you can install the python bindings via pip. selenium will use firefox as it's default browser, so make sure it's installed before installing selenium. </p> 
 <pre><code class="language-python">$ sudo pip install selenium</code></pre>
