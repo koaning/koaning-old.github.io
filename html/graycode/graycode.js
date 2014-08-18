@@ -58,19 +58,21 @@ function digit (n, radix, i) {
 }
 
 function forceDirected(graphdata, cssSelector){
-  var width = 300,
-      height = 300;
+  var width = d3.select(cssSelector).node().clientWidth/1.5,
+      height = d3.select(cssSelector).node().clientWidth/1.5;
 
   var color = d3.scale.category20();
 
   var force = d3.layout.force()
-      .charge(-120)
-      .linkDistance(80)
+      .charge(1000)
+      .linkDistance(100)
       .size([width, height]);
 
   var svg = d3.select(cssSelector).append("svg")
       .attr("width", width)
-      .attr("height", height);
+      .attr("height", height)
+      .style("display","block")
+      .style("margin","auto");
 
   force
       .nodes(graphdata.nodes)
@@ -94,8 +96,7 @@ function forceDirected(graphdata, cssSelector){
       .attr("class", "node")
       .attr("r", 5)
       .style("fill", function(d) { return color(d.group); })
-      .style("fill-opacity", 0.4)
-      .call(force.drag);
+      .style("fill-opacity", 0.4);
 
   var labels = gnodes.append("text")
     .text(function(d) { return d.value; });
@@ -110,8 +111,8 @@ function forceDirected(graphdata, cssSelector){
         .attr("y2", function(d) { return d.target.y; });
 
      gnodes.attr("transform", function(d) { 
-        d.x = Math.cos(d.value/32*Math.PI*2)*width/2.2+width/2
-        d.y = Math.sin(d.value/32*Math.PI*2)*width/2.2+width/2
+        d.x = Math.cos(d.value/graphdata.nodes.length*Math.PI*2)*width/2.2+width/2
+        d.y = Math.sin(d.value/graphdata.nodes.length*Math.PI*2)*width/2.2+width/2
        return 'translate(' + [d.x, d.y] + ')'; 
      });
   });
@@ -119,7 +120,7 @@ function forceDirected(graphdata, cssSelector){
 
 var nums = d3.range(0,Math.pow(2,5)),
   	bits = d3.range(0,Math.pow(2,5)).map( d3.format('05b') ),
-	  gray = gray(5).map( function(a){ return a.join('') } );
+	  grays = gray(5).map( function(a){ return a.join('') } );
 
 var table = d3.select("table.table");
 
@@ -127,27 +128,88 @@ nums.forEach( function(d,i){
 	var tr = table.append("tr");
 	tr.append("td").text( nums[i] );
 	tr.append("td").text( bits[i] );
-	tr.append("td").text( gray[i] );
+	tr.append("td").text( grays[i] );
 })
 
-binaryGraph = { nodes : [], links : [] } 
-grayGraph = { nodes : [], links : [] } 
+function createGraphData(nums){
+  var binaryGraph = { nodes : [], links : [] },
+      grayGraph = { nodes : [], links : [] };
 
-nums.forEach( function(d){
-  binaryGraph.nodes.push( { value : d } )
-  grayGraph.nodes.push( { value : d } )
-});
+  nums.forEach( function(d){
+    binaryGraph.nodes.push( { value : d } )
+    grayGraph.nodes.push( { value : d } )
+  });
 
-binaryGraph.nodes.forEach( function(d1,i1){
-  binaryGraph.nodes.forEach( function(d2,i2){
-    if( levenstein(bits[i1],bits[i2]) == 1 ){
-      binaryGraph.links.push( {source:i1, target:i2})
+  binaryGraph.nodes.forEach( function(d1,i1){
+    binaryGraph.nodes.forEach( function(d2,i2){
+      if( levenstein(bits[i1],bits[i2]) == 1 ){
+        binaryGraph.links.push( {source:i1, target:i2})
+      }
+      if( levenstein(grays[i1],grays[i2])== 1 ){
+        grayGraph.links.push( {source:i1, target:i2})
+      }
+    })  
+  })
+  return [binaryGraph, grayGraph]
+}
+
+smallGraphs = createGraphData( d3.range(0,Math.pow(2,4)) )
+largeGraphs = createGraphData( d3.range(0,Math.pow(2,5)) )
+
+forceDirected( smallGraphs[0], "#binlev")
+forceDirected( smallGraphs[1], "#graylev")
+forceDirected( largeGraphs[0], "#binlevbg")
+forceDirected( largeGraphs[1], "#graylevbg")
+
+
+// here we are doing the trees below 
+
+var nums = d3.range(0,Math.pow(2,8)),
+    bits = d3.range(0,Math.pow(2,8)).map( d3.format('08b') ),
+    grays = gray(8).map( function(a){ return a.join('') } );
+
+var bindata = [],
+    graydata = [];
+
+bits.forEach( function(d,i){ 
+  d.split('').forEach(function(q,j){
+    if( Number(q) > 0 ){
+      console.log({xval:i, yval:j})
+      bindata.push({xval:i, yval:j})
     }
-    if( levenstein(gray[i1],gray[i2])== 1 ){
-      grayGraph.links.push( {source:i1, target:i2})
-    }
-  })  
+  });
 })
 
-forceDirected( binaryGraph, "#binlev")
-forceDirected( grayGraph, "#graylev")
+grays.forEach( function(d,i){ 
+  d.split('').forEach(function(q,j){
+    if( Number(q) > 0 ){
+      graydata.push({xval:i, yval:j})
+    }
+  });
+})
+
+var width = d3.select("#bintree").node().clientWidth
+var svg = d3.select('#bintree').append("svg")
+  .attr("width", width).attr("height",90)
+  .style("display","block").style("margin","auto");
+
+
+svg.selectAll("rect").data(bindata).enter().append("rect")
+  .attr("x", function(d){ return 3*d.xval })
+  .attr("y", function(d){ return 9*d.yval })
+  .attr("width", 3)
+  .attr("height", 9)
+  .style("fill", "steelblue");
+
+var width = d3.select("#graytree").node().clientWidth
+var svg = d3.select('#graytree').append("svg")
+    .attr("width", width).attr("height",90)
+    .style("display","block").style("margin","auto");
+
+svg.selectAll("rect").data(graydata).enter().append("rect")
+  .attr("x", function(d){ return 3*d.xval })
+  .attr("y", function(d){ return 9*d.yval })
+  .attr("width", 3)
+  .attr("height", 9)
+  .style("fill", "steelblue");
+

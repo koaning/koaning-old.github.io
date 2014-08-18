@@ -4,13 +4,22 @@
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
     <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+	<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 	<script src="/js/prism.js"></script>
-
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<link rel="stylesheet" href="/css/prism.css">
 	<link rel="stylesheet" href="../css/style.css"></link>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+	    tex2jax: {
+	      inlineMath: [["$$$","$$$"],["\\(","\\)"]]
+	    }
+	  });
+	</script>
+
 	<style>
 	body {
 	  padding-top: 30px;
@@ -45,10 +54,56 @@
 
 
 	<div class="row">
+		<div class="col-md-9">
+			<a href="/">back to main</a>
+			<br> <br> 
+			<h2>Pretty Gray Coding</h1>
+			<p>
+				Binary representations of interger values have a flaw in certain applications. The difference between the number 15 and 16 is 1, but in the binary representation I need to flip three bits instead of one. Because of this phenomenon binary representation isn't ideal for a couple of machine learning applications, genetic algorithms as well as certain communication problems.
+			</p>
+			<p> Gray coding is an alternative representation to binary that combats this characteristic. It has the characteristic that the levenstein distance between two consequtive binary strings is always one. The gray coding pattern is also cyclic; ie. the levenstein distance between the lowest and the hightest number also becomes one. 
+			</p>
+			<h2>Gray Coding Patterns</h2>
+			<p> As always, it's better to show the pattern before investigating the math. Below I've drawn the connections between numbers that have a levenstein distance of one for both binary numbers as well as gray coded numbers.</p>
+			<div class="row">
+				<div id="binlev" class="col-sm-6">
+					<h4>Binary Levenstein 16 Nodes</h4>
+				</div>
+				<div id="graylev" class="col-sm-6">
+					<h4>Gray Levenstein 16 Nodes</h4>
+				</div>
+				<div class="col-md12">
+					<p>You should instantly recognize the benefit for genetic algoritms. The gray coding is far less likely to end up in a local optimum. The cyclic aspect can also be welcome, but can only be applied if you have $$$2^n$$$ categories for some $$$n$$$. By increasing the amount of nodes the point becomes even more obvious.</p>
+				</div>
+				<div id="binlevbg" class="col-sm-6">
+					<h4>Binary Levenstein 32 Nodes</h4>
+				</div>
+				<div id="graylevbg" class="col-sm-6">
+					<h4>Gray Levenstein 32 Nodes</h4>
+				</div>
+				<div class="col-md-12"><br><br>
+					<h2>Sampling a Tree</h2>
+					<p>
+						Visualising these binary patterns can also be done on a chart instead through a graph. Below are two trees. The xaxis represents the decimal number and the yaxis represents the index on the binary string. If there is a one, a blue square is drawn, otherwise it is left white. 
+					</p>
+					<h4>Binary Tree Chart</h4>
+					<div id="bintree">
+						
+					</div>
+				</div>
+					<div class="col-md-12">
+						<h4>Gray Tree Chart</h4>
+						<div id="graytree">
+							
+						</div>
+						<p>Again we notice the spread of gray coding is more spread out over the entire interval. </p>
+					</div>
+			</div>
+		</div>
 		<div class="col-md-3">
 			<h2>Translation Table</h2>
-			<p>The table below shows the translation between integer, binary and grey representations. Notice how the levenstein distance between two consequtive grey numbers is always one. </p>
-			<table class="table table-condensed">
+			<p> For extra clarity I've added the translation table between integer, binary and gray code. </p>
+			<table class="table table-condensed table-hover">
 				<tr>
 					<th>int</th>
 					<th>binary</th>
@@ -56,27 +111,13 @@
 				</tr>
 			</table>
 		</div>
-		<div class="col-md-9">
-			<h1> Why Gray Coding</h1>
-			<p>
-				Binary representations of interger values have a flaw in certain applications. If I am to compare the number 15 and 16 then in the decimal representation I should only notice a difference of 1. The binary representation shows four bits that need to flip. For a couple of machine learning applications, genetic algorithms as well as certain communication problems another binary method to store numbers might be better.
-			</p>
-			<div class="row">
-				<div id="binlev" class="col-xs-6">
-					<h4>Binary Levenstein</h4>
-				</div>
-				<div id="graylev" class="col-xs-6">
-					<h4>Gray Levenstein</h4>
-				</div>
-			</div>
-		</div>
 	</div>
 
 <script src="graycode/graycode.js"></script>
 	<div class="row">
 		<div class="col-md-12">
 
-			<a href="http://koaning.com">back to main</a>
+			<a href="/">back to main</a>
 		</div>
 	   		<div id="disqus_thread"></div>
     <script type="text/javascript">
