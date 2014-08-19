@@ -1,9 +1,4 @@
 	<meta name='viewport' content="width=device-width">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-	<script src="/js/prism.js"></script>
 
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
@@ -33,82 +28,102 @@
 	    margin-left: auto;
 	    margin-right: auto;
 	}
+	h4{
+		font-weight: 600;
+	}
 </style>
 
 <div class="container">
 	<div class="row">
-		<div class="starter-template">
+		<div class="col-md-12">
 
+<a href="/">back to main</a> <br> <br> 
+<h1>Neo4j Language Network</h1>
 
+<p>So lets do something fun with big graphs. We are going to do a quick install of neo4j. We will then create a graph of the most common bigrams in the english language and perform some queries on it. If you don't know what neo4j is, it is a graph database. It acts like a database in the sense that you can query it but the underlying datastructure is not a table or a document store but a graph. More information <a href="http://neo4j.org/learn">here</a>.</p>
 
-# Neo4j language network
+<p>This document is intended both as a bare minimum introduction on cypher, the neo4j query language as well as an introduction to bigram analysis. In this document I only assume that you know what a graph is and that you know what a database is.</p>
 
-So lets do something fun with big graphs. We are going to do a quick install of neo4j. We will then create a graph of the most common bigrams in the english language and perform some queries on it. 
+<h1>What we will make and Setup</h1>
 
-> If you don't know what neo4j is, it is a graph database. It acts like a database in the sense that you can query it but the underlying datastructure is not a table or a document store but a graph. More information [here](http://neo4j.org/learn). 
+<p>In reality we will fill a database, but essentially the database will represent an object that can be modelled as a graph like below.</p>
 
-This document is intended both as a bare minimum introduction on cypher, the neo4j query language as well as an introduction to bigram analysis. In this document I only assume that you know what a graph is and that you know what a database is.  
+<div id="graphviz">
+	
+</div>
+<p>In this graph a node represents a word and a link represents a bigram. A sentence can then be represented through a path over the network. The likeliness of a sentence could be calculated by keeping the likelihood of individual bigrams in mind. We will explore the boundaries of using such a network as a language model in neo4j.</p>
 
-# What we will make. 
+<p> To get started, you need to do the following: </p>
 
-# Setup 
+</div>
+<div class="col-md-4">
+<h3>Setup Neo4j</h3>
 
-### Neo4j Setup
+<ol>
+<li>Go to neo4j.org and press the big download button.</li>
+<li>Unzip contents to a folder and cd to it via terminal.</li>
+<li>From the folder you just unzipped, type: <br><br>
 
-1. Go to neo4j.org and press the big download button.
-2. Unzip contents to a folder and cd to it via terminal.
-3. From the folder you just unzipped, type:
+<pre><code>$  ./bin/neo4j start</code></pre>
 
- ```➜  ./bin/neo4j start```
- 
- This will start the neo4j server from the ```bin``` folder.  
- 
-4. Now that the server has started you can type ```localhost:7474``` in your webbrowser to confirm that the neo4j server has been successfully set up. 
+This will start the neo4j server from the <code>bin</code> folder.
+ </li>
 
-### Download Bigrams  
+<li>Now that the server has started you can type <code>localhost:7474</code> in your webbrowser to confirm that the neo4j server has been successfully set up.</li>
+<li>In the browser, run the following code to make sure we start out with an empty neo4j database: <br><br>
 
-1. Go to [http://www.ngrams.info](http://www.ngrams.info) and download 1000000 non case sensitive bigrams found. Exact link can be found [here]([This link](http://example.net/). 
-2. Unzip this file and check that the file contains the following first lines; 
+<pre><code>MATCH (n)
+OPTIONAL MATCH (n)-[r]-()
+DELETE n,r;</code></pre>
 
-```
-➜  head -15 w2.txt
-275	a	a
-31	a	aaa
-29	a	all
-45	a	an
-192	a	and
-39	a	another
-25	a	at
-82	a	b
-45	a	b+
-26	a	b-17
-31	a	b-2
-54	a	b-52
-39	a	b-movie
-40	a	b-plus
-168	a	b.a
-```
+	Don't worry too much about how this code works. For now you may assume that it selects all nodes and links and deletes them. 
+</li>
+</ol>
+</div>
+<div class="col-md-4">
+<h3>Download Bigrams</h3>
 
-The ```w2.txt``` file contains a tab seperated file that has three columns; the frequency of the bigram, the first word and the second word. We will use this file to contruct a tree. 
+<ol>
+<li>Go to <a href="http://www.ngrams.info">http://www.ngrams.info</a> and download 1000000 non case sensitive bigrams found.</li>
+<li>Unzip this file and check that the file contains the following first lines;</li>
+</ol>
 
-### Upload data to Neo 
+<pre><code>$  head -15 w2.txt
+275 a   a
+31  a   aaa
+29  a   all
+45  a   an
+192 a   and
+39  a   another
+25  a   at
+82  a   b
+45  a   b+
+26  a   b-17
+31  a   b-2
+54  a   b-52
+39  a   b-movie
+40  a   b-plus
+168 a   b.a
+</code></pre>
 
-##### 1. Start the neo4j shell by typing: 
+<p>The <code>w2.txt</code> file contains a tab seperated file that has three columns; the frequency of the bigram, the first word and the second word. We will use this file to contruct a tree.</p>
 
-```
-➜  ./bin/neo4j-shell
+</div>
+<div class="col-md-4">
+<h3>Upload Data to Neo</h3>
+
+<h5>1. Start the neo4j shell by typing:</h5>
+
+<pre><code>$  ./bin/neo4j-shell
 Welcome to the Neo4j Shell! Enter 'help' for a list of commands
 NOTE: Remote Neo4j graph database service 'shell' at port 1337
 
 neo4j-sh (?)$
-```
+</code></pre>
 
-##### 2. Pass the following import script into the shell. 
+<h5>2. Paste the following import script into the shell.</h5>
 
-Copy and paste the following snippet. 
-
-```
-CREATE CONSTRAINT ON (w:Word) ASSERT w.value IS UNIQUE;
+<pre><code>CREATE CONSTRAINT ON (w:Word) ASSERT w.value IS UNIQUE;
 USING PERIODIC COMMIT
 LOAD CSV FROM
   "file:/Users/code/Downloads/w2.txt"
@@ -116,58 +131,217 @@ LOAD CSV FROM
   FIELDTERMINATOR '\t'
 MERGE (w1:Word { value: toString(line[1]) })
 MERGE (w2:Word { value: toString(line[2]) })
-CREATE (w1)-[:LINK { value : toInt(line[0])} ]->(w2);
-```
-This is not a cheap operation. I have the latest macbook and it takes about 2-3 minutes to load. Be humble though, we've just uploaded most of the englisch language in our little local database. 
+CREATE (w1)-[:LINK { value : toInt(line[0])} ]-&gt;(w2);
+</code></pre>
 
-# Cypher 
+<p>Note that this is not an operation that will finish instantly. It takes about 2-3 minutes to run on my 2014 macbook. Be humble. We've just uploaded most of the english language in our little local database.</p>
 
-Cypher is the query language that Neo4j uses. It will feel familiar to SQL but more flexible. For more info, check the [syntax reference](http://docs.neo4j.org/refcard/1.9/).
+</div>
+<div class="col-md-12">
+<h1>Cypher</h1>
 
-All of the queries below can be passed in either the neo4j console or the localhost:7474 website you already opened. 
+<p>Cypher is the query language that Neo4j uses. It will feel familiar to SQL but more flexible. For more info, check the <a href="http://docs.neo4j.org/refcard/1.9/">syntax reference</a>.All of the queries below can be passed in either the neo4j console or the localhost:7474 website you already opened.</p>
 
-### Basic Queries 
+<h3>Basic Queries</h3>
 
-These queries will look for a node in the network that is connected to another node. We can add ```where``` statements to only consider certain nodes or edges in the graph. In effect these queries look for bigrams. 
+<p>These queries will look for nodes and links in the network just like SQL questies look for rows and columns in a table database. We can use the familiar <code>where</code> statements and also operators that <code>order by</code> or <code>count</code>. I will refrain from discussing the full API here but the following queries should help you get started with Cypher.</p>
 
-##### Find 10 bigrams that start with "a"
-```
-match (w1)-[l1]->(w2) 
-where w1.value='a' 
+</div>
+</div>
+<div class="row">
+<div class="col-md-6">
+<h4>Find 10 bigrams that start with "stairs"</h4>
+
+<h6>Query</h6>
+<pre><code>match (w1)-[l1]-&gt;(w2) 
+where w1.value='stairs' 
 return w1,l1,w2 
 limit 10;
-```
+</code></pre>
 
-##### Find 10 bigrams that start with "zoo"
-```
-match (w1)-[l1]->(w2) 
-where w1.value='zoo' 
+<h6>Output</h6>
+<pre><code>+-----------------------------------------------------------------------+
+| w1                     | l1                 | w2                      |
++-----------------------------------------------------------------------+
+| Node[]{value:"stairs"} | :LINK[]{value:33}  | Node[]{value:"without"} |
+| Node[]{value:"stairs"} | :LINK[]{value:183} | Node[]{value:"with"}    |
+| Node[]{value:"stairs"} | :LINK[]{value:71}  | Node[]{value:"when"}    |
+| Node[]{value:"stairs"} | :LINK[]{value:81}  | Node[]{value:"were"}    |
+| Node[]{value:"stairs"} | :LINK[]{value:56}  | Node[]{value:"was"}     |
+| Node[]{value:"stairs"} | :LINK[]{value:31}  | Node[]{value:"up"}      |
+| Node[]{value:"stairs"} | :LINK[]{value:90}  | Node[]{value:"two"}     |
+| Node[]{value:"stairs"} | :LINK[]{value:24}  | Node[]{value:"a"}       |
+| Node[]{value:"stairs"} | :LINK[]{value:30}  | Node[]{value:"after"}   |
+| Node[]{value:"stairs"} | :LINK[]{value:26}  | Node[]{value:"again"}   |
++-----------------------------------------------------------------------+
+10 rows
+2546 ms
+</code></pre>
+
+<p> Note that I have abbreviated the ouput to make it more readable for the blog. The localhost:7474 webinterface will be able to also visualise this graph for you. </p>
+
+</div>
+<div class="col-md-6">
+<h4>Combining Where Statements</h4>
+
+<h6>Query</h6>
+<pre><code>match (w1)-[l1]-&gt;(w2) 
+where l1.value&gt;35000 and NOT w1.value = 'a'
 return w1,l1,w2 
 limit 10;
-```
+</code></pre>
+<h6>Output</h6>
 
-##### Find 10 bigrams that don't start with "a" and have a frequency that is larger than 35000
-```
-match (w1)-[l1]->(w2) 
-where l1.value>35000 and NOT w1.value = 'a'
-return w1,l1,w2 
-limit 20;
-```
-### Basic Queries 
+<pre><code>+---------------------------------------------------------------------+
+| w1                  | l1                    |  w2                   |
++---------------------------------------------------------------------+
+| Node[]{value:"all"} | :LINK[]{value:167854} | Node[]{value:"the"}   |
+| Node[]{value:"all"} | :LINK[]{value:61867}  | Node[]{value:"right"} |
+| Node[]{value:"all"} | :LINK[]{value:106921} | Node[]{value:"of"}    |
+| Node[]{value:"and"} | :LINK[]{value:101358} | Node[]{value:"you"}   |
+| Node[]{value:"and"} | :LINK[]{value:40499}  | Node[]{value:"when"}  |
+| Node[]{value:"and"} | :LINK[]{value:52934}  | Node[]{value:"what"}  |
+| Node[]{value:"and"} | :LINK[]{value:115823} | Node[]{value:"we"}    |
+| Node[]{value:"and"} | :LINK[]{value:35655}  | Node[]{value:"was"}   |
+| Node[]{value:"and"} | :LINK[]{value:78118}  | Node[]{value:"to"}    |
+| Node[]{value:"and"} | :LINK[]{value:41548}  | Node[]{value:"this"}  |
++---------------------------------------------------------------------+
+20 rows
+817 ms
+</code></pre>
 
-##### Find the most frequently used bigrams
-```
-match (w1:Word)-[l1]->(w2:Word) 
-return w1,l1,w2
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+
+<h4>Find the most frequently used bigrams</h4>
+
+<h6>Query:</h6>
+
+<pre><code>match (w1:Word)-[l1]-&gt;(w2:Word) 
+return w1.value, l1.value, w2.value
 order by l1.value descending
 limit 20;
-```
+</code></pre>
 
-		</div>
+<h6>Output:</h6>
+
+<pre><code>--------------------------------+
+| w1.value | l1.value | w2.value |
++--------------------------------+
+| "of"     | 2586813  | "the"    |
+| "in"     | 2043262  | "the"    |
+| "to"     | 1055301  | "the"    |
+| "on"     | 920079   | "the"    |
+| "and"    | 737714   | "the"    |
+| "to"     | 657504   | "be"     |
+| "at"     | 617976   | "the"    |
+| "for"    | 616400   | "the"    |
+| "in"     | 544137   | "a"      |
+| "do"     | 537718   | "n't"    |
+| "with"   | 477541   | "the"    |
+| "from"   | 472490   | "the"    |
+| "it"     | 466117   | "was"    |
+| "of"     | 444998   | "a"      |
+| "that"   | 399074   | "the"    |
+| "as"     | 365847   | "a"      |
+| "is"     | 364083   | "a"      |
+| "going"  | 363524   | "to"     |
+| "by"     | 361826   | "the"    |
+| "and"    | 345078   | "i"      |
++--------------------------------+
+20 rows
+3418 ms
+</code></pre>
+
+<p>The output seems logical as all the bigrams seem like common constructs in a sentence.</p>
+
+</div>
+<div class="col-md-4">
+<h4>Find the least common bigrams</h4>
+<h6>Query:</h6>
+<pre><code>match (w1:Word)-[l1]-&gt;(w2:Word) 
+return w1.value,l1.value, w2.value
+order by l1.value ascending
+limit 20;
+</code></pre>
+
+<h6>Output:</h6>
+
+<pre><code>+------------------------------------------+
+| w1.value | l1.value | w2.value           |
++------------------------------------------+
+| "a"      | 23       | "zucchini"         |
+| "a"      | 23       | "zit"              |
+| "a"      | 23       | "year-to-year"     |
+| "a"      | 23       | "yeoman"           |
+| "a"      | 23       | "zinger"           |
+| "a"      | 23       | "wetsuit"          |
+| "a"      | 23       | "whetstone"        |
+| "a"      | 23       | "white-owned"      |
+| "a"      | 23       | "woefully"         |
+| "a"      | 23       | "wrecker"          |
+| "a"      | 23       | "vp"               |
+| "a"      | 23       | "w"                |
+| "a"      | 23       | "warmonger"        |
+| "a"      | 23       | "washed"           |
+| "a"      | 23       | "washerwoman"      |
+| "a"      | 23       | "water-soluble"    |
+| "a"      | 23       | "wealthier"        |
+| "a"      | 23       | "week-old"         |
+| "a"      | 23       | "well-constructed" |
+| "a"      | 23       | "westward"         |
++------------------------------------------+
+20 rows
+3250 ms
+</code></pre>
+
+<p>The output seems pausible enough. It might seem slightly suspisious that all these links have a value of 23 but we need to keep in mind that we don't have all bigrams but that we have the top 1000000 bigrams.</p>
+</div>
+<div class="col-md-4">
+<h4>Find the least common words</h4>
+
+<h6>Query:</h6>
+<pre><code>match p = (w1:Word)-[*1..4]-&gt;(w2:Word)
+where w2.value='python' 
+return extract( n in nodes(p) | n.value ) 
+limit 20;
+</code></pre>
+
+<h6>Output:</h6>
+<pre><code>+--------------------------------------------+
+| extract( n in nodes(p) | n.value )         |
++--------------------------------------------+
+| ["the","python"]                           |
+| ["the","the","python"]                     |
+| ["zone","the","the","python"]              |
+| ["war","zone","the","the","python"]        |
+| ["vulnerable","zone","the","the","python"] |
+| ["usda","zone","the","the","python"]       |
+| ["twilight","zone","the","the","python"]   |
+| ["transition","zone","the","the","python"] |
+| ["training","zone","the","the","python"]   |
+| ["trade","zone","the","the","python"]      |
+| ["to","zone","the","the","python"]         |
+| ["time","zone","the","the","python"]       |
+| ["this","zone","the","the","python"]       |
+| ["their","zone","the","the","python"]      |
+| ["the","zone","the","the","python"]        |
+| ["that","zone","the","the","python"]       |
+| ["temperate","zone","the","the","python"]  |
+| ["target","zone","the","the","python"]     |
+| ["subduction","zone","the","the","python"] |
+| ["strike","zone","the","the","python"]     |
++--------------------------------------------+
+20 rows
+46 ms
+</code></pre>
+
+<p>We are asking for all paths where the last word is 'python'. When looking at the results it seems like a bigram can exist between two identical words. This query might need to be adapted to prevent cycles in the path. </p>
 	</div>
-	<div class="row">
 		<div class="col-md-12">
-<a href="http://koaning.com">back to main</a>
+<a href="/">back to main</a>
 	</div>
 	   		<div id="disqus_thread"></div>
     <script type="text/javascript">
@@ -197,3 +371,9 @@ limit 20;
   ga('send', 'pageview');
 
 </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<script src="/js/prism.js"></script>
+	<script src="neo4jbigrams/neo4jbigrams.js"></script>
