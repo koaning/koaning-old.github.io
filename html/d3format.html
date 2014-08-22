@@ -65,7 +65,7 @@
 		<div class="col-md-2"></div>
 		<div class="col-md-10">
 				<h1>D3.format tutorial through examples</h1>
-<p> The <a href="https://github.com/mbostock/d3/wiki/Formatting">documentation</a> on the working of <code>d3.format</code> is complete but could use some more examples for novice users of javascript/d3. If you are viewing this on a wide screen device you can use the format editor to the left to check live format output. </p>
+<p> The <a href="https://github.com/mbostock/d3/wiki/Formatting">documentation</a> on the working of <code>d3.format</code> is complete but could use some more examples for novice users of javascript/d3. The goal of this document is to both offer an examplified tutorial as well as a small tool to help make this part of the d3 library more clear. If you are viewing this on a wide screen device you can use the format editor to the left to check live format output. </p>
 		</div>
 		<div id="sidebar-container" class="col-sm-2">
 			<div id="sidebar">
@@ -186,7 +186,7 @@ d3.format("b")(2012)
 <div class="col-md-4">
 <h4> Octal Format </h4>
 
-Convert to base 8 number. 
+<p> Convert to base 8 number. </p>
 
 <pre><code class="language-javascript">d3.format("o")(1)
 d3.format("o")(8)
@@ -197,7 +197,7 @@ d3.format("o")(2012)
 <div class="col-md-4">
 <h4>Hexadecimal Format</h4>
 
-Convert to base 16 number.
+<p> Convert to base 16 number. </p>
 
 <pre><code class="language-javascript">d3.format("x")(17)
 d3.format("x")(2012)
@@ -205,7 +205,7 @@ d3.format("X")(17)
 d3.format("X")(2012)
 </code></pre>
 
-Note, use "x" for lowercase and "X" for capital hexnumber. 
+<p> Note, use "x" for lowercase and "X" for capital hexnumber. </p>
 </div>
 <br> 
 
@@ -297,6 +297,7 @@ d3.format(".4f")(3.14159); //"3.1416"
 </div>
 
 <div class="col-md-12">
+<br>
 <h2> Thousands Seperator </h2>
 <pre>[[fill]align][sign][symbol][0][width]<b>[,][.precision][type]</b></pre>
 <p> Especially when dealing with monetary values a thousands seperator might be useful. The seperator can be combined with anything we have just discussed. </p>
@@ -316,6 +317,7 @@ d3.format(".2f")(10101);    //"10,101.00"
 </div>
 
 <div class="col-md-12">
+ <br>
 <h2> Width </h2>
 
 <pre>[[fill]align][sign][symbol][0]<b>[width][,][.precision][type]</b></pre>
@@ -345,7 +347,9 @@ d3.format("08.3f")(123.456);   //"0123.456"
 </div>
 
 <div class="col-md-12">
+ <br>
 	<h2>Symbols</h2>
+
 	<p>According to the docs symbols can be either a currency that is determined by your locale or a base for binary, octal or hexagonal numbers.</p>
 	<pre>[[fill]align][sign]<b>[symbol][0][width][,][.precision][type]</b></pre>
 	<p> The currency works pretty straightforward. </p>
@@ -368,7 +372,8 @@ d3.format("#0x")(125);  //"0x7d"
 </div>
 
 <div class="col-md-12">
-	<h2>Symbols</h2>
+ <br>
+	<h2>Signs</h2>
 	<pre>[[fill]align]<b>[sign][symbol][0][width][,][.precision][type]</b></pre>
 	<p> Symbols are characters that determine how to view negative/postive values. The documentation is clear on how a sign can be used, it can be: </p>
 	<ul>
@@ -385,7 +390,7 @@ d3.format(" ")(-125); //"-125"
 </code></pre>
 </div>
 
-<div class="col-md-12">
+<div class="col-md-12"><br>
 	<h2>Alignment and Fill</h2>
 	<pre><b>[[fill]align][sign][symbol][0][width][,][.precision][type]</b></pre>
 	<p> You can also align the formatter output string with any character you want as long as it isn't <code>{</code> or <code>}</code>. You will need to tell the formatter how you want to align characters and what character to use as the fill. The fill character would need to preseed an alignment indicator:</p>
