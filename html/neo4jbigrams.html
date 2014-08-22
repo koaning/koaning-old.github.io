@@ -42,7 +42,7 @@
 
 <p>So lets do something fun with big graphs. We are going to do a quick install of neo4j. We will then create a graph of the most common bigrams in the english language and perform some queries on it. If you don't know what neo4j is, it is a graph database. It acts like a database in the sense that you can query it but the underlying datastructure is not a table or a document store but a graph. More information <a href="http://neo4j.org/learn">here</a>.</p>
 
-<p>This document is intended both as a bare minimum introduction on cypher, the neo4j query language as well as an introduction to bigram analysis. In this document I only assume that you know what a graph is and that you know what a database is.</p>
+<p>This document is intended both as a bare minimum introduction on cypher, the neo4j query language as well as a small reflection on the graphical representation of bigrams. In this document I only assume that you know what code is, what a graph is and what a database is.</p>
 
 <h1>What we will make and Setup</h1>
 
@@ -51,7 +51,7 @@
 <div id="graphviz">
 	
 </div>
-<p>In this graph a node represents a word and a link represents a bigram. A sentence can then be represented through a path over the network. The likeliness of a sentence could be calculated by keeping the likelihood of individual bigrams in mind. We will explore the boundaries of using such a network as a language model in neo4j.</p>
+<p>In this graph a node represents a word and a link represents a bigram. A sentence can then be represented through a path over the network. The likeliness of a sentence could be estimated by keeping track of the likelihood of individual bigrams in the path. We will explore some of the boundaries of using such a network as a language model in neo4j.</p>
 
 <p> To get started, you need to do the following: </p>
 
@@ -255,7 +255,7 @@ limit 20;
 3418 ms
 </code></pre>
 
-<p>The output seems logical as all the bigrams seem like common constructs in a sentence.</p>
+<p>The output seems logical. All the bigrams listed seem like common constructs in an english sentence.</p>
 
 </div>
 <div class="col-md-4">
@@ -297,8 +297,9 @@ limit 20;
 3250 ms
 </code></pre>
 
-<p>The output seems pausible enough. It might seem slightly suspisious that all these links have a value of 23 but we need to keep in mind that we don't have all bigrams but that we have the top 1000000 bigrams.</p>
+<p>The output seems pausible enough if you consider that we only have a subset of all bigrams. It might seem slightly suspisious that all these links have a value of 23 but we need to keep in mind that we don't have the bigrams that do not belong to the top 1000000 bigrams.</p>
 </div>
+
 <div class="col-md-4">
 <h4>Find the least common words</h4>
 
@@ -339,7 +340,97 @@ limit 20;
 </code></pre>
 
 <p>We are asking for all paths where the last word is 'python'. When looking at the results it seems like a bigram can exist between two identical words. This query might need to be adapted to prevent cycles in the path. </p>
-	</div>
+</div>
+
+
+<div class="col-md-12">
+	<h2>Advanced Queries</h2>
+</div>
+
+
+<div class="col-md-6">
+<h4>Short Paths</h4>
+
+<h6>Query:</h6>
+<pre><code>match (w1:Word{value:'monk'}),
+      (w2:Word{value:'python'}),
+      path = shortestPath((w1)-[*..5]-(w2))
+return extract( n in nodes(path) | n.value );
+</code></pre>
+
+<h6>Output:</h6>
+<pre><code>+---------------------------------------+
+| extract( n in nodes(path) | n.value ) |
++---------------------------------------+
+| ["monk","and","python"]                |
++---------------------------------------+
+1 row
+22 ms
+</code></pre>
+
+<p> Being able to find shortest paths is a very nice feature of the cypher language. Note that for large and more sparse networks this will be a more expensive operation. Our graph is small and most bigrams are connected via stopwords, but not all graphs have this property.</p>
+
+<p>Note the <code>extract( n in nodes(path) | n.value )</code> syntax, this is the cypher way of performing a list comprehension. </p>
+
+<p> Cypher prefers that you not use functions like <code>sum</code> on the <code>extract</code> output and instead prefers that you use the <code>reduce</code> method. </p>
+</div>
+
+
+
+<div class="col-md-6">
+<h4>Long Paths</h4>
+
+<h6>Query:</h6>
+<pre><code>MATCH p = (w1:Word)-[*3]->(w2:Word)
+WHERE w2.value='python' 
+RETURN extract( n in nodes(p) | n.value ) as words, 
+extract( l in relationships(p) | l.value ) as values, 
+reduce(sum=0, nn IN relationships(p) |  sum + nn.value) as sum 
+ORDER BY sum DESC
+LIMIT 20;
+</code></pre>
+<!-- sort by bigram values: sum -->
+<h6>Output:</h6>
+<pre><code>+-----------------------------------------------------------------+
+| words                           | values              | sum     |
++-----------------------------------------------------------------+
+| ["one","of","the","python"]     | [299439,2586813,93] | 2886345 |
+| ["out","of","the","python"]     | [257291,2586813,93] | 2844197 |
+| ["kind","of","the","python"]    | [154645,2586813,93] | 2741551 |
+| ["lot","of","the","python"]     | [149324,2586813,93] | 2736230 |
+| ["part","of","the","python"]    | [143275,2586813,93] | 2730181 |
+| ["some","of","the","python"]    | [130213,2586813,93] | 2717119 |
+| ["all","of","the","python"]     | [106921,2586813,93] | 2693827 |
+| ["number","of","the","python"]  | [102156,2586813,93] | 2689062 |
+| ["most","of","the","python"]    | [84822,2586813,93]  | 2671728 |
+| ["because","of","the","python"] | [83493,2586813,93]  | 2670399 |
+| ["percent","of","the","python"] | [81211,2586813,93]  | 2668117 |
+| ["end","of","the","python"]     | [74265,2586813,93]  | 2661171 |
+| ["sort","of","the","python"]    | [66556,2586813,93]  | 2653462 |
+| ["many","of","the","python"]    | [60466,2586813,93]  | 2647372 |
+| ["use","of","the","python"]     | [51132,2586813,93]  | 2638038 |
+| ["sense","of","the","python"]   | [49201,2586813,93]  | 2636107 |
+| ["front","of","the","python"]   | [46572,2586813,93]  | 2633478 |
+| ["side","of","the","python"]    | [43912,2586813,93]  | 2630818 |
+| ["much","of","the","python"]    | [43602,2586813,93]  | 2630508 |
+| ["rest","of","the","python"]    | [43144,2586813,93]  | 2630050 |
++-----------------------------------------------------------------+
+20 rows
+19597 ms
+</code></pre>
+
+<p>Note that this query significantly more time consuming. This is because we are not interested in ANY path that meets the description but we now want the top 20 paths. This means that every path might need to be taken into consideration instead of just the first 20 paths that are found.</p>
+</div>
+
+<div class="col-md-12">
+	<h1>Conclusions</h1>
+	<p> Neo4j is very flexible because it offers the graph datastructure in a database tool. This means that you can add very complex data to the databse without being compromised for expressiveness. Cypher is a simple language that allows for many complex queries. If you quickly need a tool (without the need to set up a hadoop environment) to analyze a graph structure then neo4j is tough to beat. Not all graph problems are easy though. These tutorial examples are purposefully kept small and you will notice that things go slower when more complexity is introduced. All paths like <code>p = (w1:Word)-[*3]->(w2:Word)</code> will be much faster to obtain than paths like <code>p = (w1:Word)-[*6]->(w2:Word)</code>.</p>
+	<p>The bigram graph model is a nice representation of how words might be related but it needs work before it might have an application. We have seen bigrams with the same word in it and there might be other data input errors that need cleaning.</p>
+	<p>The main issue is that we need more information for these paths on the graph to have any meaning. If we want to use bigrams to value the correctness of a sentence by looking at the occurence then bigrams like <code>"of" - "the"</code> will always appear in every sentence. The data would need to be expanded with trigrams make the model more interesting.</p>
+</div>
+
+
+
 		<div class="col-md-12">
 <a href="/">back to main</a>
 	</div>

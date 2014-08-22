@@ -66,7 +66,7 @@ function forceDirected(graphdata, cssSelector){
 
   var force = d3.layout.force()
       .charge(-500)
-      .linkDistance(50)
+      .linkDistance(40)
       .size([width, height]);
 
   var svg = d3.select(cssSelector).append("svg")
