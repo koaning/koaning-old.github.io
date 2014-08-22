@@ -43,6 +43,21 @@
 	    margin-left: auto;
 	    margin-right: auto;
 	}
+	span.gray{
+		color: rgba(26, 12, 12, 0.15);;
+	}
+
+	span.orange{
+		background-color: rgba(228, 181, 75, 0.5);
+	}
+
+	tr.greenish{
+		background-color: rgba(0, 128, 0, 0.14);
+	}
+
+	tr.redish{
+		background-color: rgba(255, 0, 0, 0.14);
+	}
 </style>
 
 <div class="container">
@@ -57,7 +72,7 @@
 		<div class="col-md-9">
 			<a href="/">back to main</a>
 			<br> <br> 
-			<h2>Pretty Gray Coding</h1>
+			<h1>Pretty Gray Coding</h1>
 			<p>
 				Binary representations of interger values have a flaw in certain applications. The difference between the number 15 and 16 is 1, but in the binary representation I need to flip three bits instead of one. Because of this phenomenon binary representation isn't ideal for a couple of machine learning applications, genetic algorithms as well as certain communication problems.
 			</p>
@@ -96,7 +111,17 @@
 						<div id="graytree">
 							
 						</div>
-						<p>Again we notice the spread of gray coding is more spread out over the entire interval. </p>
+						<p>Again we notice the spread of gray coding is more spread out over the entire interval. </p><br><br><br>
+					</div>
+					<h2>Tree Difference Chart</h2>
+					<div class="col-md-12">
+						<h4>Difference Chart</h4>
+						<p>What would happend if we draw the difference between binary and gray digits? </p>
+						<div id="difftree">
+							
+						</div>
+						<p>This is where it gets curious but beautiful. The green rectanglues represent the same digit while the orange rectangles represent the difference. The resulting tree looks as if it binary, but it is slightly different. The leaves of the tree are a bit thicker, it looks similar to the binary chart but it is different.</p>
+						<p>One might wonder why we can see a recursing tree if we look at the difference of the two representations. The answer lies in recursion and it is faily easy to spot.</p>
 					</div>
 			</div>
 		</div>
@@ -113,6 +138,159 @@
 		</div>
 	</div>
 
+	<div class="row">
+		<div class="col-sm-9">
+			<h3>The 2-bit case.</h3>
+			<p>Notice that the first bits of both binary and gray representations are all the same. Only for $$$i=2,3$$$ do we see that the second bit is different. If we are interested in what is different, the first bits do not matter.</p>	
+		</div>
+		<div class="col-sm-3">
+			<h3>Translation Table</h3>
+			<table class="table table-condensed table-hover">
+				<tr>
+					<th>int</th>
+					<th>binary</th>
+					<th>grey</th>
+				</tr>
+				<tr>
+					<td>0</td>
+					<td>00</td>
+					<td>00</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>01</td>
+					<td>01</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>1<span class="orange">0</span></td>
+					<td>1<span class="orange">1</span></td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>1<span class="orange">0</span></td>
+					<td>1<span class="orange">1</span></td>
+				</tr>
+			</table>
+			<br>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-6">
+			<h3>The 3-bit case.</h3>
+			<p>Notice again that the first bits of both binary and gray representations are all the same. Suppose that we remove this first strip. We will then have a reduced table in which it seems like we have two tables. The green table is exactly the same as the previous table. The red table has a certain <code>L</code> shape in it's body. </p>
+
+			<p>Do you see the recursion?</p>
+		</div>
+		<div class="col-sm-3">
+			<h3>Original Table</h3>
+			<table class="table table-condensed table-hover">
+				<tr>
+					<th>int</th>
+					<th>binary</th>
+					<th>grey</th>
+				</tr>
+				<tr>
+					<td>0</td>
+					<td>000</td>
+					<td>000</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>001</td>
+					<td>001</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>011</td>
+					<td>010</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>011</td>
+					<td>010</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td>100</td>
+					<td>110</td>
+				</tr>
+				<tr>
+					<td>5</td>
+					<td>101</td>
+					<td>111</td>
+				</tr>
+				<tr>
+					<td>6</td>
+					<td>110</td>
+					<td>100</td>
+				</tr>
+				<tr>
+					<td>7</td>
+					<td>111</td>
+					<td>100</td>
+				</tr>
+			</table>
+		</div>
+				<div class="col-sm-3">
+			<h3>Stripped Table</h3>
+			<table class="table table-condensed">
+				<tr>
+					<th>int</th>
+					<th>binary</th>
+					<th>grey</th>
+				</tr>
+				<tr class="greenish">
+					<td>0</td>
+					<td><span class="gray">0</span>00</td>
+					<td><span class="gray">0</span>00</td>
+				</tr>
+				<tr class="greenish">
+					<td>1</td>
+					<td><span class="gray">0</span>01</td>
+					<td><span class="gray">0</span>01</td>
+				</tr>
+				<tr class="greenish">
+					<td>2</td>
+					<td><span class="gray">0</span>1<span class="orange">0</span></td>
+					<td><span class="gray">0</span>1<span class="orange">1</span></td>
+				</tr>
+				<tr class="greenish">
+					<td>3</td>
+					<td><span class="gray">0</span>1<span class="orange">1</span></td>
+					<td><span class="gray">0</span>1<span class="orange">0</span></td>
+				</tr>
+				<tr class="redish">
+					<td>4</td>
+					<td><span class="gray">1</span><span class="orange">0</span>0</td>
+					<td><span class="gray">1</span><span class="orange">1</span>0</td>
+				</tr>
+				<tr class="redish">
+					<td>5</td>
+					<td><span class="gray">1</span><span class="orange">0</span>1</td>
+					<td><span class="gray">1</span><span class="orange">1</span>1</td>
+				</tr>
+				<tr class="redish">
+					<td>6</td>
+					<td><span class="gray">1</span><span class="orange">1</span><span class="orange">0</span></td>
+					<td><span class="gray">1</span><span class="orange">0</span><span class="orange">1</span></td>
+				</tr>
+				<tr class="redish">
+					<td>7</td>
+					<td><span class="gray">1</span><span class="orange">1</span><span class="orange">1</span></td>
+					<td><span class="gray">1</span><span class="orange">0</span><span class="orange">0</span></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-12">
+			<h1>Ending Remarks</h1>	
+			<p>If you want to know more about the applications of gray coding, I can recommend checking out the <a href="http://en.wikipedia.org/wiki/Gray_code">wikipedia page</a>.</p>
+		</div>
+	</div>
 <script src="graycode/graycode.js"></script>
 	<div class="row">
 		<div class="col-md-12">

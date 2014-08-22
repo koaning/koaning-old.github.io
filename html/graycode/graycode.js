@@ -169,12 +169,12 @@ var nums = d3.range(0,Math.pow(2,8)),
     grays = gray(8).map( function(a){ return a.join('') } );
 
 var bindata = [],
-    graydata = [];
+    graydata = [],
+    difference = [];
 
 bits.forEach( function(d,i){ 
   d.split('').forEach(function(q,j){
     if( Number(q) > 0 ){
-      console.log({xval:i, yval:j})
       bindata.push({xval:i, yval:j})
     }
   });
@@ -187,6 +187,25 @@ grays.forEach( function(d,i){
     }
   });
 })
+
+bits.forEach( function(d,i){ 
+  var bi = bits[i].split(''),
+      gi = grays[i].split('');
+  bi.forEach(function(q,j){
+    var g = bi[j],
+        b = gi[j];
+    if( g == 0 && b == 0 ){
+      difference.push({xval:i, yval:j, col: "green"})
+    }else if( g == 0 && b == 1 ){
+      difference.push({xval:i, yval:j, col: "orange"})
+    }else if( g == 1 && b == 0 ){
+      difference.push({xval:i, yval:j, col: "orange"})
+    }else{
+      difference.push({xval:i, yval:j, col: "green"})
+    };
+      // console.log( g, b, difference[ difference.length - 1])
+  })
+});
 
 var width = d3.select("#bintree").node().clientWidth
 var svg = d3.select('#bintree').append("svg")
@@ -212,4 +231,16 @@ svg.selectAll("rect").data(graydata).enter().append("rect")
   .attr("width", 3)
   .attr("height", 9)
   .style("fill", "steelblue");
+
+var width = d3.select("#difftree").node().clientWidth
+var svg = d3.select('#difftree').append("svg")
+    .attr("width", width).attr("height",90)
+    .style("display","block").style("margin","auto");
+
+svg.selectAll("rect").data(difference).enter().append("rect")
+  .attr("x", function(d){ return 3*d.xval })
+  .attr("y", function(d){ return 9*d.yval })
+  .attr("width", 3)
+  .attr("height", 9)
+  .style("fill", function(d){ return d.col });
 

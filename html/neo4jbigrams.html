@@ -38,7 +38,7 @@
 		<div class="col-md-12">
 
 <a href="/">back to main</a> <br> <br> 
-<h1>Neo4j Language Network</h1>
+<h1>Basic Neo4j Language Graph</h1>
 
 <p>So lets do something fun with big graphs. We are going to do a quick install of neo4j. We will then create a graph of the most common bigrams in the english language and perform some queries on it. If you don't know what neo4j is, it is a graph database. It acts like a database in the sense that you can query it but the underlying datastructure is not a table or a document store but a graph. More information <a href="http://neo4j.org/learn">here</a>.</p>
 
@@ -427,6 +427,7 @@ LIMIT 20;
 	<p> Neo4j is very flexible because it offers the graph datastructure in a database tool. This means that you can add very complex data to the databse without being compromised for expressiveness. Cypher is a simple language that allows for many complex queries. If you quickly need a tool (without the need to set up a hadoop environment) to analyze a graph structure then neo4j is tough to beat. Not all graph problems are easy though. These tutorial examples are purposefully kept small and you will notice that things go slower when more complexity is introduced. All paths like <code>p = (w1:Word)-[*3]->(w2:Word)</code> will be much faster to obtain than paths like <code>p = (w1:Word)-[*6]->(w2:Word)</code>.</p>
 	<p>The bigram graph model is a nice representation of how words might be related but it needs work before it might have an application. We have seen bigrams with the same word in it and there might be other data input errors that need cleaning.</p>
 	<p>The main issue is that we need more information for these paths on the graph to have any meaning. If we want to use bigrams to value the correctness of a sentence by looking at the occurence then bigrams like <code>"of" - "the"</code> will always appear in every sentence. The data would need to be expanded with trigrams make the model more interesting.</p>
+	<p>If you are interested in more datasets that you can use with neo4j then check out this <a href="http://www.neo4j.org/develop/example_data">resource</a>.</p>
 </div>
 
 
