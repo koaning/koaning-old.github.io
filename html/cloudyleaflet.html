@@ -43,9 +43,9 @@
   <div class="row">
     <div class="col-md-12">
       <h1>Creating a Cloudy Leaflet</h1>
-      <p>In this small document I will describe how to make dynamic clouds appear on a leaflet map using d3.</p>
+      <p>In this small document I will describe how to make dynamic clouds appear on a leaflet map using d3. The clouds themselves won't be too interesting, but the techniques of drawing them are. The steps described here might also help you make more dynamic maps yourself that go beyond a standard example.</p>
       <h2>Creating a Cloud.</h2>
-      <p>The cloud that I want to create will consist of several circles that together form a cloud that has a shaded opacity. You need to apply a css-trick to get this to work properly. Consider the following started code:</p>
+      <p>The cloud that we want to create will consist of several circles that together form a cloud that has a shaded opacity. You need to apply a css-trick to get this to work properly. Consider the following started code:</p>
     </div>
     <div class="col-md-6">
       <h4>javascript</h4>
@@ -195,8 +195,104 @@ setInterval( function(){
 
 <div class="col-md-12">
   <h2>Dealing with Leaflet</h2>
-  <p>It might be useful to review Mike Bostocks <a href="http://bost.ocks.org/mike/leaflet/">tutorial</a> on how to combine leaflet with d3 before moving on. We need to append svg elements to a leaflet layer and keep in mind that we need to slightly alter out coordinates to fit correctly to the surface of the round earth. Also, we will not be using GEOJSON to create these clouds, but we will be using a simple array instead.</p>
+  <p>It might be useful to review Mike Bostocks <a href="http://bost.ocks.org/mike/leaflet/">tutorial</a> on how to combine leaflet with d3 before moving on. We need to append svg elements to a leaflet layer. Keep in mind that we need to alter our coordinates to fit to the surface of the round earth. Also, we will not be using geojson to these clouds, but we will be using a simple array instead.</p>
+  <p>The first step is to make sure we can plot a few simple points on the map without using geojson.</p>
+
+  <h3>Start up Leaflet</h3>
+
+  <p>The first thing we will need to do is initialize leaflet.</p>
+
+  <pre><code class="language-javascript">var circles = [[52.3667,4.90000],[52.6667,5.10000],[52.1, 4.8],[52.08,5.11],[51.9167, 4.5000]];
+
+var map = L.map('map').setView([52.3667,4.90000], 8);
+
+L.tileLayer(
+  'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy + Openstreetmap Contributors',
+  maxZoom: 18,
+}).addTo(map);
+
+map._initPathRoot();</code></pre>
+
+<p>You use whatever tileserver you want (you could even make your own tiles!). I am using openstreetmaps which offers tiles completely for free. Note that I am being a good citizen here and that I am attributing openstreetmaps, you should too if you use their tiles. If you prefer more options for design I highly recommend you take a look at mapbox but be aware that you might need to pay for their service.</p>
+
+<h3>Circles on a Map</h3>
+
+
+<div class="row">
+  <div class="col-md-6">
+<p>The following code creates a map with transparant points on the map.</p>
+<pre><code class="language-javascript">var svg = d3.select("#map").select("svg"),
+    g = svg.append("g");
+    
+  circles.forEach(function(d) {
+    d.LatLng = new L.LatLng(d[0],d[1])
+  });
+
+  var links = _.rest(circles).map( function(d){
+    return [_.first(circles), d ]
+  })
+
+  var feature = g.selectAll("circle")
+    .data(circles)
+    .enter().append("circle")
+    .style("fill", "orange")
+    .style("fill-opacity",0.7)
+    .attr("r", 10)
+    .on("click", function(d){
+      alert(d)
+    });
+  
+  map.on("viewreset", update);
+
+  update();
+
+  function update(){
+    feature.attr("transform", 
+    function(d) { 
+      return "translate("+ 
+        map.latLngToLayerPoint(d.LatLng).x +","+ 
+        map.latLngToLayerPoint(d.LatLng).y +")";
+      }
+    )
+  }</code></pre>
+    
+  </div>
+  <div class="col-md-6">
+<p>The full source of this map can be found <a href="http://bl.ocks.org/koaning/bf0c84b37f3b37870c03">here</a>.</p>
+
+<iframe src="cloudyleaflet/circles.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
+    
+  </div>
+  
+  <div class="col-md-12">
+  <br>
+  <h3>Opacity and Movement</h3>
+
+  <p>To emphesize that the overlap also works on the map I've made the circles larger. Also notice that I've implemted movement of the group where the circles are in.</p>
+  </div>
+
+  <div class="col-md-6">
+<pre><code class="language-javascript">g.style("opacity", 0.5)
+
+function move(duration){
+  feature.transition().attr("transform", 
+  function(d){ 
+    return "translate("+ 
+      (map.latLngToLayerPoint(d.LatLng).x + 100) +","+ 
+      map.latLngToLayerPoint(d.LatLng).y +")"
+    }
+  ).duration(duration).ease("linear")
+}</code></pre>
+  </div>
+  <div class="col-md-6">
+<iframe src="cloudyleaflet/circles2.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
+  </div>
 </div>
+</div>
+
+</p>
+
 
 
   <div class="col-md-12">
