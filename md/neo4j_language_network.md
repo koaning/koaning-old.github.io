@@ -55,6 +55,7 @@ CREATE (b1)-[:LINK {value : toInt(l[0])}]->(b2);
 This upload takes a while 
 
 ```
+THROUGH ONLINE NEO4J SHELL
 +-------------------+
 | No data returned. |
 +-------------------+
@@ -63,6 +64,17 @@ Relationships created: 217273
 Properties set: 145696
 Labels added: 39790
 1639278 ms ~ 27 mins
+
+OFFLINE MODE 
++-------------------+
+| No data returned. |
++-------------------+
+Nodes created: 39790
+Relationships created: 217283
+Properties set: 145698
+Labels added: 39790
+553732 ms ~ 9 mins
+
 ```
 
 

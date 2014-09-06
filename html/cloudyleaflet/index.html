@@ -6,9 +6,9 @@
     <script src="/js/prism.js"></script>
 
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-    <link rel="stylesheet" href="../css/bootstrap3.css">
-    <link rel="stylesheet" href="../css/prism.css">
-    <link rel="stylesheet" href="../css/style.css"></link>
+    <link rel="stylesheet" href="../../css/bootstrap3.css">
+    <link rel="stylesheet" href="../../css/prism.css">
+    <link rel="stylesheet" href="../../css/style.css"></link>
   <style>
   body {
     padding-top: 30px;
@@ -42,10 +42,10 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <h1>Creating a Cloudy Leaflet</h1>
-      <p>In this small document I will describe how to make dynamic clouds appear on a leaflet map using d3. The clouds themselves won't be too interesting, but the techniques of drawing them are. The steps described here might also help you make more dynamic maps yourself that go beyond a standard example.</p>
+      <h1>Svg Defs, Cloudy Leaflet</h1>
+      <p>In this small document I will describe how to make dynamic clouds appear on a leaflet map using d3 by using svg defs. The clouds themselves won't be too interesting, but the techniques of drawing them are. The steps in this tutorial will help you make advanced maps with open source tools and will explain more advanced concepts of the svg specifications.</p>
       <h2>Creating a Cloud.</h2>
-      <p>The cloud that we want to create will consist of several circles that together form a cloud that has a shaded opacity. You need to apply a css-trick to get this to work properly. Consider the following started code:</p>
+      <p>The cloud that we want to create will consist of several circles that together form a cloud that has a shaded opacity. Consider the following start code:</p>
     </div>
     <div class="col-md-6">
       <h4>javascript</h4>
@@ -102,11 +102,12 @@ cloud1.selectAll("circles")
 </script>
 
   <div class="col-md-12">
-    <p>There are two main downsides to this approach.</p>
+    <p>There are two main downsides to this cloud.</p>
     <ul>
       <li>The opacity change is applied to individual circles and not to the entire cloud.</li>
-      <li>If we want to animate the cloud in the future we would need to apply the same animation to six different elements.</li>
+      <li>If we want to animate the cloud we would need to apply the same animation to six different elements.</li>
     </ul>
+    <h3>Grouped Circles</h3>
     <p>A better approach would be to have these circles in a group. That way we can apply the css rule as well as the animation to the group.</p>
   </div>
     <div class="col-md-6">
@@ -194,6 +195,87 @@ setInterval( function(){
 </script>
 
 <div class="col-md-12">
+  <br>
+  <h2>Multiple Clouds </h2>
+  <p>Ideally we would go a step further. We have a definition what a cloud should be by grouping circles in a <code>g</code>. This group element would need to be created again and again for every type of cloud we would like to make. If we want to draw multiple clouds on a map we would need to copy a lot of code. Preferably we would define what a cloud is in svg terms and then reuse the pattern instead of copying code over and over.</p>
+
+  <h4>What are &lt;defs&gt;</h4>
+  <p>SVG allows graphical objects to be defined for later reuse. Referable elements can be created via the use of the <code>&lt;defs&gt;</code> element. You can define shapes with attributes as well as styles within these elements.</p>
+</div>
+<div class="col-md-6">
+<h4>html</h4>
+<pre><code class="language-html">&lt;svg&gt;<br/> &lt;defs&gt;<br/>   &lt;g id=&quot;cloud&quot; style=&quot;opacity: 0.5;&quot;&gt;<br/>     &lt;circle cx=&quot;10&quot; cy=&quot;70&quot; r=&quot;10&quot;&gt;<br/>     &lt;/circle&gt;<br/>      &lt;circle cx=&quot;20&quot; cy=&quot;25&quot; r=&quot;10&quot;&gt;<br/>     &lt;/circle&gt;<br/>      &lt;circle cx=&quot;70&quot; cy=&quot;35&quot; r=&quot;10&quot;&gt;<br/>     &lt;/circle&gt;<br/>      &lt;circle cx=&quot;50&quot; cy=&quot;45&quot; r=&quot;20&quot;&gt;<br/>     &lt;/circle&gt;<br/>      &lt;circle cx=&quot;20&quot; cy=&quot;55&quot; r=&quot;20&quot;&gt;<br/>     &lt;/circle&gt;<br/>      &lt;circle cx=&quot;30&quot; cy=&quot;45&quot; r=&quot;25&quot;&gt;<br/>     &lt;/circle&gt;<br/>    &lt;/g&gt;<br/> &lt;/defs&gt;<br/>  &lt;g transform=&quot;translate(0,0)&quot;&gt;<br/>   &lt;use xlink:href=&quot;#cloud&quot;&gt;<br/>    &lt;/use&gt;<br/> &lt;/g&gt;<br/> &lt;g transform=&quot;translate(100,0)&quot;&gt;<br/>   &lt;use xlink:href=&quot;#cloud&quot;&gt;<br/>    &lt;/use&gt;<br/> &lt;/g&gt;<br/> &lt;g transform=&quot;translate(200,0)&quot;&gt;<br/>   &lt;use xlink:href=&quot;#cloud&quot;&gt;<br/>    &lt;/use&gt;<br/> &lt;/g&gt;<br/>&lt;/svg&gt;
+</code></pre>
+</div>
+<div class="col-md-6">
+<h4>result</h4>
+<svg width="100%" height="100"><defs><g id="cloud" style="opacity: 0.5;"><circle cx="10" cy="70" r="10" style="fill: rgb(70, 130, 180);"></circle><circle cx="20" cy="25" r="10" style="fill: rgb(70, 130, 180);"></circle><circle cx="70" cy="35" r="10" style="fill: rgb(70, 130, 180);"></circle><circle cx="50" cy="45" r="20" style="fill: rgb(70, 130, 180);"></circle><circle cx="20" cy="55" r="20" style="fill: rgb(70, 130, 180);"></circle><circle cx="30" cy="45" r="25" style="fill: rgb(70, 130, 180);"></circle></g></defs><g transform="translate(0,0)"><use xlink:href="#cloud"></use></g><g transform="translate(100,0)"><use xlink:href="#cloud"></use></g><g transform="translate(200,0)"><use xlink:href="#cloud"></use></g></svg>
+<p>Notice that the cloud only gets defined once and then gets referenced in each group element.</p>
+</div>
+</div>
+<div class="col-md-12">
+    <h4>D3 and &lt;defs&gt;</h4>
+  <p>D3 can render <code>defs</code> just like any other element. Because items are grouped we can draw multiple clouds but animate each group seperately.</p>
+</div>
+<div class="col-md-6">
+<h4>javascript</h4>
+<pre><code class="language-javascript">var cloudDef = svg.append('defs').append("g").attr("id","cloud").style("opacity", 0.5);
+
+cloudDef.selectAll("circle").data(circle_data).enter()
+  .append("circle")
+  .attr("cx", function(d){return d[0]})
+  .attr("cy", function(d){return d[1]})
+  .attr("r", function(d){return d[2]})
+  .style("fill", "steelblue")
+
+svg.append("g").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+svg.append("g").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+svg.append("g").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+setInterval( function(){
+  d3.selectAll("g.cloud").transition()
+    .attr("transform", function(){
+      return "translate(" + Math.random() * 200 + ", 0)"
+    })
+}, 1000)</code></pre>
+</div>
+<div class="col-md-6">
+<h4>result</h4>
+<svg id="defcircles"></svg>
+<script>var svg = d3.select("#defcircles").attr("width","100%").attr("height",100);
+
+var cloudDef = svg.append('defs').append("g").attr("id","cloud").style("opacity", 0.5);
+
+cloudDef.selectAll("circle").data(circle_data).enter()
+  .append("circle")
+  .attr("cx", function(d){return d[0]})
+  .attr("cy", function(d){return d[1]})
+  .attr("r", function(d){return d[2]})
+  .style("fill", "steelblue")
+
+svg.append("g").attr("transform","translate(0,0)").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+svg.append("g").attr("transform","translate(100,0)").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+svg.append("g").attr("transform","translate(200,0)").attr("class","cloud")
+ .append("use").attr("xlink:href","#cloud")
+
+setInterval( function(){
+  d3.selectAll("g.cloud").transition()
+    .attr("transform", function(){
+      return "translate(" + Math.random() * 200 + ", 0)"
+    })
+}, 1000)</script>
+<p> The full source of this snippet can be found <a href="http://bl.ocks.org/anonymous/2b1d992dfb66542ec1e2">here</a>
+</div>
+<div class="col-md-12">
   <h2>Dealing with Leaflet</h2>
   <p>It might be useful to review Mike Bostocks <a href="http://bost.ocks.org/mike/leaflet/">tutorial</a> on how to combine leaflet with d3 before moving on. We need to append svg elements to a leaflet layer. Keep in mind that we need to alter our coordinates to fit to the surface of the round earth. Also, we will not be using geojson to these clouds, but we will be using a simple array instead.</p>
   <p>The first step is to make sure we can plot a few simple points on the map without using geojson.</p>
@@ -261,7 +343,7 @@ map._initPathRoot();</code></pre>
   <div class="col-md-6">
 <p>The full source of this map can be found <a href="http://bl.ocks.org/koaning/bf0c84b37f3b37870c03">here</a>.</p>
 
-<iframe src="cloudyleaflet/circles.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
+<iframe src="circles.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
     
   </div>
   
@@ -275,19 +357,65 @@ map._initPathRoot();</code></pre>
   <div class="col-md-6">
 <pre><code class="language-javascript">g.style("opacity", 0.5)
 
-function move(duration){
+function move(){
+  var newRand = 200*Math.random();
   feature.transition().attr("transform", 
   function(d){ 
     return "translate("+ 
-      (map.latLngToLayerPoint(d.LatLng).x + 100) +","+ 
+      (map.latLngToLayerPoint(d.LatLng).x + newRand) +","+ 
       map.latLngToLayerPoint(d.LatLng).y +")"
     }
-  ).duration(duration).ease("linear")
-}</code></pre>
+  ).duration(3000).ease("linear")
+}
+
+setInterval( move, 3000)</code></pre>
   </div>
   <div class="col-md-6">
-<iframe src="cloudyleaflet/circles2.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
+<iframe src="circles2.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
   </div>
+
+<div class="col-md-12">
+  <br>
+  <h3>Groupwise</h3>
+
+  <p>Note that in the above I am moving all the circles at the same time but seperately. Preferably we would move the circle group instead.</p>
+</div>
+
+  <div class="col-md-6">
+<pre><code class="language-javascript">var circles = g.selectAll("circle")
+  .data(circles)
+  .enter().append("circle")
+  .style("fill", "orange")
+  .style("fill-opacity",1)
+  .attr("r", 30)
+  .on("click", function(d){
+    alert(d)
+  });
+
+function update(){
+  circles.attr("transform", 
+  function(d) { 
+    return "translate("+ 
+      map.latLngToLayerPoint(d.LatLng).x +","+ 
+      map.latLngToLayerPoint(d.LatLng).y +")";
+    }
+  )
+} 
+
+setInterval( move, 3000)</code></pre>
+  </div>
+  <div class="col-md-6">
+<iframe src="circles3.html" width="100%" height="600px" marginheight="0" scrolling="no" frameborder="0"></iframe>
+  </div>
+
+<div class="col-md-12">
+  <br>
+  <h3>Automatic Cloud Shapes</h3>
+
+  <p>You might have noticed that zooming in and out can cause the circles to move such that the cloud shape is altered. Preferably we would create a single location where we can append a cloud group object.</p>
+</div>
+
+
 </div>
 </div>
 
