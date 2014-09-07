@@ -311,30 +311,30 @@ limit 20;
 </code></pre>
 
 <h6>Output:</h6>
-<pre><code>+--------------------------------------------+
-| extract( n in nodes(p) | n.value )         |
-+--------------------------------------------+
-| ["the","python"]                           |
-| ["the","the","python"]                     |
-| ["zone","the","the","python"]              |
-| ["war","zone","the","the","python"]        |
-| ["vulnerable","zone","the","the","python"] |
-| ["usda","zone","the","the","python"]       |
-| ["twilight","zone","the","the","python"]   |
-| ["transition","zone","the","the","python"] |
-| ["training","zone","the","the","python"]   |
-| ["trade","zone","the","the","python"]      |
-| ["to","zone","the","the","python"]         |
-| ["time","zone","the","the","python"]       |
-| ["this","zone","the","the","python"]       |
-| ["their","zone","the","the","python"]      |
-| ["the","zone","the","the","python"]        |
-| ["that","zone","the","the","python"]       |
-| ["temperate","zone","the","the","python"]  |
-| ["target","zone","the","the","python"]     |
-| ["subduction","zone","the","the","python"] |
-| ["strike","zone","the","the","python"]     |
-+--------------------------------------------+
+<pre><code>+------------------------------------------+
+| extract( n in nodes(p) | n.value )       |
++------------------------------------------+
+|["the","python"]                          |
+|["the","the","python"]                    |
+|["zone","the","the","python"]             |
+|["war","zone","the","the","python"]       |
+|["vulnerable","zone","the","the","python"]|
+|["usda","zone","the","the","python"]      |
+|["twilight","zone","the","the","python"]  |
+|["transition","zone","the","the","python"]|
+|["training","zone","the","the","python"]  |
+|["trade","zone","the","the","python"]     |
+|["to","zone","the","the","python"]        |
+|["time","zone","the","the","python"]      |
+|["this","zone","the","the","python"]      |
+|["their","zone","the","the","python"]     |
+|["the","zone","the","the","python"]       |
+|["that","zone","the","the","python"]      |
+|["temperate","zone","the","the","python"] |
+|["target","zone","the","the","python"]    |
+|["subduction","zone","the","the","python"]|
+|["strike","zone","the","the","python"]    |
++-------------------------------------------+
 20 rows
 46 ms
 </code></pre>
