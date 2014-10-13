@@ -154,10 +154,8 @@ function correlation(x, y) {
         shortestArrayLength = x.length;
     } else if(x.length > y.length) {
         shortestArrayLength = y.length;
-        console.error('x has more items in it, the last ' + (x.length - shortestArrayLength) + ' item(s) will be ignored');
     } else {
         shortestArrayLength = x.length;
-        console.error('y has more items in it, the last ' + (y.length - shortestArrayLength) + ' item(s) will be ignored');
     }
   
     var xy = [];
@@ -223,11 +221,16 @@ Array.prototype.remove = function(from, to) {
   return this.push.apply(this, rest);
 };
 
-var findCongestedLink = function(){
+var findCongestedLink = function(graph){
     var copy = function(d){return d};
+    var nodes = graph.nodes.map(copy); 
+    var links = graph.links.map(function(d){
+        return [d.source.index, d.target.index]
+    }); 
+    links.forEach(function(link){
+        links.push([link[1], link[0]])
+    })
 
-    var nodes = d3.range(0,5); 
-    var links = [[0,1],[1,2],[2,3],[3,4]];
     var dist = nodes.map(function(d1,i1){
         return nodes.map(function(d2,i2){
             if( i1 == i2 ){
@@ -263,12 +266,6 @@ var findCongestedLink = function(){
         })
     });
 
-    var printDist = function(distances){
-        distances.forEach(function(list){
-            console.log( list.map(function(d){ return d.dist}).toString('') );
-        } )
-    }
-
     var allpaths = [];
     dist.forEach(function(d1,i2){
         return d1.forEach(function(d2,i1){
@@ -283,5 +280,10 @@ var findCongestedLink = function(){
 
     var link = _.invert(counts)[_.max(counts)];
 
-    link
+    return link.split("-").map(function(d){ return Number(d) })
 }
+
+var graph = {nodes:nodes, links:links}
+findCongestedLink(graph) 
+_.find(links, function(d){ return d.target.index == 16  }).color="red";
+restart();

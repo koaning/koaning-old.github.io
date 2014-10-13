@@ -6,7 +6,7 @@
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
-	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+  	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="dat.gui.js"></script>
     <script type="text/javascript" src="helpers.js"></script>
     <script type="text/javascript" src="clusterfck.js"></script>
@@ -120,7 +120,6 @@ function mousedown() {
   var point = d3.mouse(this),
       node = {x: point[0], y: point[1]},
       n = nodes.push(node);
-      console.log(n,nodes);
 
   // add links to any nearby nodes
   nodes.forEach(function(target){
@@ -147,7 +146,10 @@ function restart(){
   link = link.data(links);
 
   link.enter().insert("line", ".node")
-      .attr("class", "link");
+      .attr("class", "link")
+      .style("stroke", function(d){
+        return d.color
+      });
 
   node = node.data(nodes);
 
@@ -163,7 +165,6 @@ function restart(){
   link.exit().remove();
   force.start();
 }
-
 
 </script>
 </body>
