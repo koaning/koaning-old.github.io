@@ -67,11 +67,85 @@ var corrCoef = function(n1,n2){
     }));
 }
 
-// A = toMatrix(nodes, links)
-// A = getCorrCoefMatrix()
-// clustering = translate(A, kmeans(A,2))
-// nodeUpdate(clustering) 
-// node.style("fill",function(d){ return d.color })
+// var removeNode = function(idx){
+//     nodes = nodes.filter(function(d){ 
+//         return d.index != idx;
+//     });
+
+//     _.findIndex(links, function(d){ 
+//         var bool1 = d.source.index == idx,
+//             bool2 = d.target.index == idx; 
+//         return bool1 || bool2;
+//     });
+
+//     var removebleLinks = links.reduce(function(a, e, i) {
+//         var bool1 = e.source.index == idx,
+//             bool2 = e.target.index == idx; 
+//         if(bool1 || bool2){a.push(i)};
+//         return a;
+//     }, []);
+
+//     _.sortBy(removebleLinks, function(d){
+//         return -d
+//     }).forEach( function(d){
+//         links.splice(d,1)
+//     })
+    
+//    restart();
+// }
+
+var randomGrowNode = function(){
+    if( nodes.length > 50 ){
+        return 0; 
+    }
+    var fromNode = nodes[Math.floor(Math.random()*nodes.length)],
+    node = {x: 20*Math.random()+fromNode.x, y: 20*Math.random()+fromNode.y};
+    nodes.push(node);
+
+    // add links to any nearby nodes
+    nodes.forEach(function(target){
+        var x = target.x - node.x,
+            y = target.y - node.y;
+        if (Math.sqrt(x * x + y * y) < 30) {
+          links.push({source: node, target: target});
+        }
+    });
+    restart();
+    ml();
+}
+
+var randomGrowCluster = function(){
+    if( nodes.length > 50 ){
+        return 0; 
+    }
+    var fromNode = nodes[Math.floor(Math.random()*nodes.length)],
+    node = {x: 20*Math.random()+fromNode.x, y: 20*Math.random()+fromNode.y};
+    nodes.push(node);
+
+    // add links to any nearby nodes
+    nodes.forEach(function(target){
+        var x = target.x - node.x,
+            y = target.y - node.y;
+        if (Math.sqrt(x * x + y * y) < 30) {
+          links.push({source: node, target: target});
+        }
+    });
+    restart();
+    ml();
+}
+
+var repeat = function(f, max, num){
+    f()
+    if(num < max) repeat(f,max,num+1)
+}
+
+var ml = function(){
+    // A = toMatrix(nodes, links)
+    A = getCorrCoefMatrix()
+    clustering = translate(A, kmeans(A,3))
+    nodeUpdate(clustering) 
+    node.style("fill",function(d){ return d.color })
+}
 
 function correlation(x, y) {
     var shortestArrayLength = 0;
@@ -143,3 +217,71 @@ Array.prototype.equals = function (array) {
     return true;
 }   
 
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
+var findCongestedLink = function(){
+    var copy = function(d){return d};
+
+    var nodes = d3.range(0,5); 
+    var links = [[0,1],[1,2],[2,3],[3,4]];
+    var dist = nodes.map(function(d1,i1){
+        return nodes.map(function(d2,i2){
+            if( i1 == i2 ){
+                return {dist:0, paths: []};
+            }
+            return {dist:9999, paths: []};
+        });
+    });
+
+    links.forEach(function(d){
+        dist[d[0]][d[1]].dist = 1; 
+        dist[d[0]][d[1]].paths = [{source:d[0], target:d[1]}]
+    })
+
+    nodes.forEach(function(d1,k){
+        nodes.forEach(function(d1,i){
+            nodes.forEach(function(d1,j){
+                if( dist[i][j].dist > dist[i][k].dist + dist[k][j].dist ){
+                    dist[i][j].dist = dist[i][k].dist + dist[k][j].dist
+                    var newpaths = dist[i][k].paths.map(copy)
+                    dist[k][j].paths.forEach( function(d){
+                        newpaths.push(d);
+                    })
+                    dist[i][j].paths = newpaths;
+                }
+            })
+        })
+    })
+
+    dist.forEach(function(d1,i){
+        dist.forEach(function(d2,j){
+            dist[j][i] = dist[i][j]
+        })
+    });
+
+    var printDist = function(distances){
+        distances.forEach(function(list){
+            console.log( list.map(function(d){ return d.dist}).toString('') );
+        } )
+    }
+
+    var allpaths = [];
+    dist.forEach(function(d1,i2){
+        return d1.forEach(function(d2,i1){
+            allpaths.push(d2.paths);
+        })
+    })
+
+    var counts = _.flatten(allpaths).map( function(d){ return d.source + "-" + d.target }).reduce(function(map, word){
+        map[word] = (map[word]||0)+1;
+        return map;
+    }, Object.create(null));
+
+    var link = _.invert(counts)[_.max(counts)];
+
+    link
+}
