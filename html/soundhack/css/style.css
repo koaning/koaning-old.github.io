@@ -1,0 +1,20 @@
+body {
+	margin: 0;
+	padding: 20px;
+}
+
+a {
+	display: block;
+	margin-bottom: 20px;
+	color: #ffffff;
+}
+
+svg{ 
+	height: 1000;
+}
+
+path {
+	stroke: steelblue;
+	stroke-width: 1;
+	fill: none;
+}

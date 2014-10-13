@@ -19,6 +19,14 @@ var toCorrelationMatrix = function( simMatrix ){
 	});
 }
 
+var getCorrCoefMatrix = function(){
+    return nodes.map(function(d1,i1){ 
+        return nodes.map(function(d2,i2){
+            return corrCoef(i1,i2);
+        }) 
+    })
+}
+
 var translate = function(matrix, clusters){
 	function translateRow(matrix, cluster){
 		return _.findIndex(A, function(d){ return d == cluster })
@@ -42,13 +50,28 @@ var nodeUpdate = function(clustering){
 	})
 }
 
+var corrCoef = function(n1,n2){
+    var connected = function(n1,n2){
+        return _.filter(links, function(d){ 
+            var bool1 = d.source.index == n1 & d.target.index == n2
+            var bool2 = d.source.index == n2 & d.target.index == n1
+            return bool1 | bool2 
+        }).length > 0
+    }
+    var n2ConnectedNodes = _.filter(links, function(d){ 
+        return d.source.index == n2 | d.target.index == n2
+    }).map(function(d){ return d.target });
+
+    return d3.mean(n2ConnectedNodes.map( function(d){ 
+        return connected(d.index,n1) | d.index == n1 
+    }));
+}
+
 // A = toMatrix(nodes, links)
-// clustering = translate(A, kmeans(A,5))
+// A = getCorrCoefMatrix()
+// clustering = translate(A, kmeans(A,2))
 // nodeUpdate(clustering) 
-// node.style("fill",function(d){ return d.color }) 
-
-translate(A, kmeans(A,2))
-
+// node.style("fill",function(d){ return d.color })
 
 function correlation(x, y) {
     var shortestArrayLength = 0;
