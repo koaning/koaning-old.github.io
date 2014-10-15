@@ -86,7 +86,7 @@ var fill = d3.scale.category20();
 var force = d3.layout.force()
     .size([width, height])
     .nodes([{}]) // initialize with a single node
-    .linkDistance(30)
+    .linkDistance(20)
     .charge(-60)
     .on("tick", tick);
 
@@ -148,6 +148,7 @@ function restart(){
   link.enter().insert("line", ".node")
       .attr("class", "link")
       .style("stroke", function(d){
+        console.log(d);
         return d.color
       });
 

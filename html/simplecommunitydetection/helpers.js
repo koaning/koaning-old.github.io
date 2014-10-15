@@ -221,7 +221,8 @@ Array.prototype.remove = function(from, to) {
   return this.push.apply(this, rest);
 };
 
-var findCongestedLink = function(graph){
+
+var floydWarshall = function(graph){
     var copy = function(d){return d};
     var nodes = graph.nodes.map(copy); 
     var links = graph.links.map(function(d){
@@ -273,17 +274,48 @@ var findCongestedLink = function(graph){
         })
     })
 
-    var counts = _.flatten(allpaths).map( function(d){ return d.source + "-" + d.target }).reduce(function(map, word){
+    return _.flatten(allpaths).map(function(d){ 
+        return d.source + "-" + d.target 
+    }).reduce(function(map, word){
         map[word] = (map[word]||0)+1;
         return map;
     }, Object.create(null));
+}
 
-    var link = _.invert(counts)[_.max(counts)];
+var findCongestedLink = function(floydWarshallCounts){
+    var link = _.invert(floydWarshallCounts)[_.max(floydWarshallCounts)];
 
     return link.split("-").map(function(d){ return Number(d) })
 }
 
+var findLinkIndex = function(links, key){
+    var key = key.split("-").map(function(d){ return Number(d) });
+    return _.findIndex(links, function(d){ 
+        var bool1 = d.source.index == key[0] && d.target.index == key[1],
+            bool2 = d.source.index == key[1] && d.target.index == key[0];
+        return bool1 || bool2;  
+    })
+}
+
+var updateLineThickNess = function(counts){
+    var thickness = d3.scale.linear()
+        .domain(d3.extent(_.values(counts)))
+        .range([1,10]);
+
+    _.keys(counts).forEach(function(edge){
+        var id = findLinkIndex(links, edge);
+        d3.select(link[0][id]).style("stroke-width", thickness(counts[edge])); 
+    })
+}
+
 var graph = {nodes:nodes, links:links}
-findCongestedLink(graph) 
-_.find(links, function(d){ return d.target.index == 16  }).color="red";
-restart();
+var counts = floydWarshall(graph)
+updateLineThickNess(counts)
+var cut = findCongestedLink(counts)
+var id = _.findIndex(links, function(d){ 
+    var bool1 = d.source.index == cut[0] && d.target.index == cut[1],
+        bool2 = d.source.index == cut[1] && d.target.index == cut[0];
+    return bool1 || bool2;  
+})
+// d3.select(link[0][id]).style("stroke","red").style("stroke-width",4); 
+
