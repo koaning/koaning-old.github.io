@@ -91,19 +91,6 @@ function measure(run){
 	drawspectogrambit(freqByteData, run)
 }
 
-// highly inperformant d3 code 
-// for (var j = matrix.length - 1; j >= 0; j--) {
-// 	var freqByteData = matrix[j];
-// 	for (var i = 0; i < freqByteData.length; i++) {
-// 		d3.select("svg").append("rect")
-// 			.attr("x", i)
-// 			.attr("y", function(){ return j } )
-// 			.attr("width", 1)
-// 			.attr("height", 1)
-// 			.style("fill", color(freqByteData[i]) );
-// 	}
-// };
-
 // rather performant canvas code 
 drawspectogram = function(){
 	var canvas = document.getElementById("myCanvas");

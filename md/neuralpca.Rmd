@@ -1,0 +1,143 @@
+# Neural PCA 
+
+In this document I will show a small experiment that shows how a neural network can be used as a pca-algorithm. It should also help explain how neural networks work and why neural networks can be such a powerful machine learning algorithm. 
+
+The code will be written in R and needs the following dependencies. 
+
+```{r}
+library(RSNNS)
+library(ggplot2)
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+```
+
+### Generating Bits
+
+I will start out by generation random bits as data in a data frame.
+
+```{r fig.width=7, fig.height=6}
+set.seed(1)
+num.vars = 6 
+num.obs = 500 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+head(df)
+```
+
+This bits will then be used as input **and** output for a neural network. The goal is to see if a neural network can be trained to fit the data back into its original format while only using a limited amount of nodes in the hidden layer. Such a neural network might look like so:
+
+```{r}
+mod = mlp(df, df, size=c(4))
+plot.nnet(mod)
+```
+
+We can check the performace of such a neural network. 
+
+```{r}
+bit.acc = sum( round(mod$fitted.values) == df ) / sum( df == df )
+row.acc = sum(rowSums(round(mod$fitted.values) == df) == 6)/nrow(df)
+cat(bit.acc, row.acc)
+```
+
+Notice that in this case we have about 95% of the bits estimated correctly and about 71% of the rows estimated correctly. That means that we are able to maintain 71% of the variance in this dataset by only using 4 hidden nodes (out of 6 total data sources). 
+
+### Repeating for different network sizes
+
+To further investigate this effect we would need to set up a simulation run. Neural network algorithms usually have random initialization values, so I will simulate multiple neural networks per hidden node size. Below I have created the simulation function that I will use throughout the document. 
+
+
+```{r}
+simulation = function(df, num.sims){
+  results = data.frame(vars = as.numeric(c()), acc = as.numeric(c()), type=as.factor(c()))
+  num.vars = ncol(df)  
+  for(i in 1:num.vars){
+	  for(j in 1:num.sims){
+	    cat("hidden nodes :", i ,"sample #", j, "\n")
+	    mod = mlp(df, df, size=c(i))
+	    bit.acc = sum( round(mod$fitted.values) == df ) / sum( df == df )
+	    row.acc = sum(rowSums(round(mod$fitted.values) == df) == num.vars)/nrow(df)
+	    results = rbind(results, data.frame(vars = i, acc = bit.acc, type= "bit"))
+	    results = rbind(results, data.frame(vars = i, acc = row.acc, type= "row"))
+	  }
+	}
+  results 
+}
+```
+ 
+I will also need a function to plot my results. 
+
+```{r}
+plotsim = function(results, title){
+  p = ggplot() + geom_point(data=results, aes(vars, acc), alpha=0.6) 
+  p = p + facet_grid( . ~ type )
+  p + ggtitle(title)
+}
+```
+
+### Simulation 1
+
+```{r}
+# simulation 1, random values 
+num.vars = 8
+num.obs = 1000 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+plotsim(simulation(df, 5), 'simulation 1')
+```
+
+### Simulation 2
+```{r}
+# simulation 2, random values very large dataset
+num.vars = 20
+num.obs = 2000 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+plotsim(simulation(df, 5), 'simulation 2')
+```
+
+### Simulation 3
+
+```{r}
+# simulation 3, clustered random values 
+num.vars = 5
+num.obs = 200 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+df = cbind(df, sapply(df$X1, function(x) if(runif(1)<0.8) x else sample(0:1)[1]))
+df = cbind(df, sapply(df$X2, function(x) if(runif(1)<0.8) x else sample(0:1)[1]))
+df = cbind(df, sapply(df$X2, function(x) if(runif(1)<0.8) x else sample(0:1)[1]))
+plotsim(simulation(df, 5), 'simulation 3')
+```
+
+### Simulation 4
+```{r}
+# simulation 4, clustered random values very large dataset
+num.vars = 12
+num.obs = 200 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+for(1 in 1:8){
+  df = cbind(df, sapply(df$X1, function(x) if(runif(1)<0.8) x else sample(0:1)[1]))
+}
+plotsim(simulation(df, 5), 'simulation 4')
+```
+
+## Comparing to 'normal' PCA 
+
+```{r}
+pca = princomp(df)
+summary(pca)
+plot(c(0.1861116, 0.3661659, 0.5389031, 0.7083296, 0.8566965, 1.0000000))
+```
+
+## Plotting the Neural PCA 
+
+```{r}
+num.vars = 2
+num.obs = 200 
+df = data.frame(replicate(num.vars,sample(0:1,num.obs,rep=TRUE)))
+df = cbind(df, sapply(df$X1, function(x) if(runif(1)<0.8) x else sample(0:1)[1]))
+df = cbind(df, sapply(df$X2, function(x) if(runif(1)<0.5) x else sample(0:1)[1]))
+colnames(df) = c('x1','x2','x3','x4')
+mod = mlp(df, df, size=c(2))
+v1 = as.data.frame(extractNetInfo(mod)$fullWeightMatrix)['Hidden_2_1'][1:4,]
+v2 = as.data.frame(extractNetInfo(mod)$fullWeightMatrix)['Hidden_2_2'][1:4,]
+m1 = as.matrix(df)
+m2 = rbind(t(as.vector(v1)), t(as.vector(v2)))
+m1 %*% t(m2)
+```

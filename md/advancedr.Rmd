@@ -1,0 +1,278 @@
+Advanced R 
+========================================================
+
+This document describes some lessons I would like to teach on the advanced subjects of R. We will need the following packages. 
+
+```{r}
+library(microbenchmark)
+library(dplyr)
+library(ggplot2)
+```
+
+## R Vocabulary 
+
+R is full of functions. Many of them are very useful albeit infrequently used and unknown. Here I have a list of such functions. 
+
+```{r}
+
+```
+
+## Functional Programming 
+
+#### Many ways to write a function 
+In R there are many ways to write the same function. 
+
+```{r}
+add = function(a,b){
+  return(a + b)
+}
+
+add = function(a,b){
+  a + b 
+}
+
+add = function(a,b) a + b 
+```
+
+These three functions do exactly the same thing. A few things to note: 
+- a function does not need a ```return``` statement to return a value, if no return statement is given it will return the final value on the body of the function 
+- a function does not need curly brackets if you are only running one line of code. 
+
+We can take this a step further by also adding ```if``` statements in our code. 
+
+```{r}
+posneg = function(a){
+  if(a<0) return('neg')
+  else if(a>0) return('pos')
+  else '0'
+}
+
+posneg = function(a){
+  if(a<0) 'neg'
+  else if(a>0) 'pos'
+  else '0'
+}
+
+posneg = function(a){
+  if(a<0) 'neg'
+  if(a>0) 'pos'
+  '0'
+}
+```
+
+Usually, it is preferable that you use as little characters as possible, as long as the code remains clear to your collegues. 
+
+#### Functions as input
+
+In R you can write functions that accept functions as input as well as functions that return other functions. Suppose that I wanted to write a function that can either add or multiply two numbers. 
+
+A possible way would be to do the following: 
+
+```{r}
+runfunc = function(a,b,f){
+  if(f == "add"){
+    return(a+b)
+  }else{
+    return(a*b)
+  }
+}
+```
+
+There are a few things that aren't nice about this setup. 
+- if ```f="foobar"``` we might want the function to give an error instead of ```a+b```
+- if we need to add another function to the possible list of functions that ```runfunc``` can run we need to add another ```if else```, which means a lot of lines of extra code 
+
+A possible improvement might be: 
+
+```{r}
+add = function(a,b) a + b 
+mult = function(a,b) a * b 
+
+runfunc = function(a,b,f){
+  return f(a,b)
+}
+```
+
+#### Functions as Output 
+
+##### Recursion 
+
+- fibonachi 
+- 
+
+#### Clojures 
+
+- forloop as a function 
+
+### Applications 
+
+#### Numerical Integration 
+
+#### A list of formulas, applied to lm 
+
+
+## ggplot2 & reshape2 
+
+```{r results='hide', message=FALSE, warning=FALSE} 
+library(ggplot2)
+library(reshape2)
+```
+
+lazy evaluation of ggplot 
+show the reshape2 tools 
+
+## apply, sapply, lapply, dplyr
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+## Performance 
+
+We should never optimize before we know what is inperformant. You can check the performance of some of your code via the ```microbenchmark``` library. 
+
+```{r}
+library(microbenchmark)
+```
+
+An alternative method for profiling is to use the ```system.time``` method, but this is much less accurate. 
+
+```{r}
+x <- runif(1000)
+microbenchmark(
+  sqrt(x),
+  x ^ (1 / 2),
+  exp(log(x) / 2)
+)
+```
+
+There are three ways to calculate a square root and we notice that one function is significantly quicker than the others. Another benchmark is to look at the number of evaluations that are needed instead of looking at the time it takes to execute. 
+
+```{r}
+x <- runif(1000)
+microbenchmark(
+  sqrt(x),
+  x ^ (1 / 2),
+  exp(log(x) / 2), 
+  unit = "eps"
+)
+```
+
+In this case, higher means better. We can also compare two implementations of the ```fib``` function. 
+
+Possible exercizes:
+
+1. Compare the arithmetic operators ( ```+```, ```-```, ```*```, ```/```, ```^```) on performance and visualise the results. 
+2. Think before you check. Which of the following functions for the fibonachi sequence would run quicker? 
+
+```{r}
+fib1 = function(len){
+  fibvals <- numeric(len)
+  fibvals[1] <- 1
+  fibvals[2] <- 1
+  for (i in 3:len) { 
+     fibvals[i] <- fibvals[i-1]+fibvals[i-2]
+  }
+  fibvals[len]
+}
+
+fib2 = function(len){
+  if(len == 1) return(1)
+  if(len == 2) return(1)
+  return(fib2(len-1) + fib2(len-2))
+}
+```
+
+## Performance 2
+
+Below I will show you multiple ways to select a subset of data in a dataframe. 
+
+```{r}
+microbenchmark(
+  "[32, 11]"      = mtcars[32, 11],
+  "$carb[32]"     = mtcars$carb[32],
+  "[[c(11, 32)]]" = mtcars[[c(11, 32)]],
+  "[[11]][32]"    = mtcars[[11]][32],
+  ".subset2"      = .subset2(mtcars, 11)[32]
+)
+```
+
+Notice the performance difference. The reason of the difference? Nobody has fixed the improvements. Selecting maximum/minimum values also can be done a lot quicker if you pick different functions. 
+
+R does some opertions in verctorized mode. If it knows all types in an array to be of a certain type you shouldn't always write an ```apply``` type function for it. 
+
+```{r}
+x = runif(1000)
+microbenchmark(
+  sapply(x, function(x){ x * 2}),
+  x * 2
+)
+```
+
+## Performance 3 
+
+Let's have a look at the ```dplyr``` package. The performance is impressive. Also notice that the syntax is much more elegant. 
+
+```{r}
+microbenchmark(
+  "dyplr" = filter(ChickWeight, Diet == 1),
+  "dfindex" = ChickWeight[ChickWeight$Diet==1,],
+  "subset" = subset(ChickWeight, ChickWeight$Diet == 1)
+)
+```
+
+Also for aggregations it seems to be very performant. 
+
+```{r}
+microbenchmark(
+  "dplyr" = summarise(group_by(ChickWeight, Diet, Time), mean(weight)),
+  "aggregate" = aggregate(data=ChickWeight, weight ~ Time + Diet, FUN=mean)
+)
+```
+
+Guess we should start switching over to ```dplyr``` very soon. 
+
+
+
+## Profiling 
+
+### Elegant way to simulate data 
+
+### Creating Ensembles for K-means
+
+In this Snippet I will evaluate the effectiveness for creating an ensemble of kmeans classifiers to cluster different datasets.
+
+First I will create a dataset and plot it.
+
+```{r}
+df = data.frame(x1 = as.numeric(c()), x2=as.numeric(c()), center=as.factor(c()))
+centers = list(c(2.5, 1.5), c(2, 3.5), c(4,2.5))
+
+for(i in 1:length(centers)){
+  new = data.frame(x1=rnorm(150, centers[[i]][1]), x2=rnorm(150, centers[[i]][2]), center=as.factor(i) )
+  df = rbind(df, new)
+}
+
+ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) 
+```
+
+We can now run a simple kmeans algorithm and confirm that it finds the appropriate centers. 
+
+```{r}
+mod = as.data.frame(kmeans(select(df, x1, x2), 3)$centers )
+print(mod)
+ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) + geom_point(data=mod, aes(x1,x2), size=5) 
+```
+
+We will now resample and run kmeans multiple times. 
+```{r}
+res = data.frame(x1 = as.numeric(c()), x2=as.numeric(c()))
+for( i in 1:200){
+  a = as.data.frame( kmeans(sample_n(select(df, x1, x2), 300), 4)$centers )
+  a$centers = as.factor(c(1,2,3,4))  
+  res = rbind(res, a)
+}
+
+ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) + geom_point(data=res, aes(x1, x2))
+kmeans(select(res, x1, x2), 4)$centers
+```
