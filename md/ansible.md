@@ -112,6 +112,7 @@ Ansible can also be used to run the same commands but on an external server. If 
 ###### shell command 
 
 ```
+$ ansible-playbook -i hosts -k playbook.yml
 $ ssh root@37.139.10.170
 root@37.139.10.170's password:
 root@37.139.10.170:~# head /tmp/confirm

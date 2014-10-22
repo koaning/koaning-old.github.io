@@ -48,8 +48,8 @@
 	<div class="row">
 		<div class="col-md-12">	
 			<a href="/">back to main</a>	
-			<h1>Soundhack with JavaScript</h1>
-			<p>In this document I will present a proof of concept for using javascript for real time recognition of sound patterns in music. This concept was developed during the Amsterdam Music Hack Day 2014. This document is best viewed on a webkit browser (Chrome or Safari).</p>
+			<h1>Recognizing Drumhits in Js</h1>
+			<p>In this document I will present a proof of concept for using javascript for real time recognition of sound patterns in music. This modest concept was developed during the Amsterdam Music Hack Day 2014. I enjoyed playing with it and felt it was worth sharing here as well. This document is best viewed on a modern webkit browser (Chrome or Safari) that supports WebAudio.</p>
 			<h2>The end product.</h2>
 		</div>
 		<div class="col-sm-3">
@@ -80,19 +80,50 @@ analyser.connect(audioContext.destination);
 				</div>
 			</div>
 			<h2>Spectogram Data</h2>
+			<p>The analyser can supply a canvas element with spectogram data. If you click the below button you can see the sound develop over time with time on the y axis and frequency on the x axis. This functionality requires only two functions that are run while the analyser is collecting data about sound.</p>
+			<div class="row">
+				<div class="col-sm-6">
+					<pre><code class="language-javascript">function measure(run){
+	if( run < 900 ){ // stop after this many samples have been measured
+	  webkitRequestAnimationFrame(function(){measure(run + 1)});
+	}
+	var freqByteData = new Uint8Array(analyser.frequencyBinCount);
+	analyser.getByteFrequencyData(freqByteData);
+	matrix.push(freqByteData);
+	drawspectogrambit(freqByteData, run)
+}</code></pre>
+				</div>
+				<div class="col-sm-6">
+					<pre><code class="language-javascript">function drawspectogram(){
+	var canvas = document.getElementById("myCanvas");
+	var canvasWidth = canvas.width;
+	var canvasHeight = canvas.height;
+	var ctx = canvas.getContext("2d");
+	var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+	for (var j = matrix.length - 1; j >= 0; j--) {
+		var freqByteData = matrix[j];
+		for (var i = 0; i < freqByteData.length; i++) {
+			ctx.fillStyle = color(freqByteData[i])
+			ctx.fillRect(i,j,1,1);
+		}
+	};	
+}</code></pre>
+				</div>
+			</div>
+			<h2> Full spectogram demo</h2>
 			<div class="row">
 				<div class="col-sm-3">
-					<button class="btn btn-default" id="buildspectogram" onclick="init()">Build Music Data</button>
+					<button class="btn btn-default" id="buildspectogram" onclick="buildSpectogram()">Build Music Data</button>
 				</div>
 				<div class="col-sm-9">
+					<p>When the button is pressed a spectogram will be created below. This output is different if multiple sources are playing!</p>
 				</div>
 			</div>
 			<br> 
-			<h4> Full spectogram </h4>
 		  	<canvas id="myCanvas" width="1024" height="900"></canvas>
-	  		<h4> Midrange Peaks</h4>
-	  		<div id="sparkline"></div>
-			<h2>Downsides</h2>
+	  		<p>You can instantly notice that there is a pattern in the spectogram. At the lower ranges you can definately recognize the four chords and in the lower ranges you can definately recognize the drum hits. To recognize this in real time you only need to keep track when the volume at these frequency ranges are above a certain threshold.</p>
+	  		<p>Note though that it takes time for the analyser to sample music and that you need more time if you are processing the sample data. When I am rendering with canvas I get about 900 samples in 14 seconds (64Hz), when I am doing this with d3 I only get 300 samples (20Hz). If you want to use this technique for a dj-esque visualisation, latency might be an issue. </p>
+	  		<p>Still, there is potential to explore this further as this idea was developed at a hackathon in only 3/4 hours. I am using a very naive approach that might not work on all music but the idea could be adapted to do a more time series analyses to allow for others songs with different drum patterns to also be recognized. Again here, sampling time would suffer from doing more calculations.</p>
 		</div>
 	</div>
 </div>

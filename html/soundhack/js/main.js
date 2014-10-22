@@ -7,12 +7,46 @@ var color = d3.scale.linear()
 var matrix = [],
 	times = []; 
 
-function init() {
-	setupWebAudio();
+function buildSpectogram() {
+	playAudio();
 	measure(0);
 }
 
+var audioContext = new webkitAudioContext();
+var analyser = audioContext.createAnalyser();
+
+function createAudioElement(urls) {
+    var audioElement = document.createElement("audio");
+
+    audioElement.autoplay = true;
+    audioElement.loop = false;
+    
+    for (var i = 0; i < urls.length; ++i) {
+        var typeStr = "audio/" + urls[i].split(".").pop();
+
+        if (audioElement.canPlayType === undefined ||
+            audioElement.canPlayType(typeStr).replace(/no/, "")) {
+            var sourceElement = document.createElement("source");
+            sourceElement.type = typeStr;
+            sourceElement.src = urls[i];
+            audioElement.appendChild(sourceElement);
+        }
+    }
+    return audioElement;
+}
+
+function playAudio(){
+    var audio = createAudioElement(['untitled.wav' ]);      
+    if(audio){
+        var source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        audio.play();
+    }
+}
+
 function demo(){
+	playAudio();
 	function run(i) {
 		if( i < 900 ){ // stop after this many samples have been measured
 		  webkitRequestAnimationFrame(function(){run(i + 1)});
@@ -25,13 +59,6 @@ function demo(){
 			d3.select("#demo").style("background-color","#ffffff")
 		}
 	}
-	var audio = document.getElementById('music');
-	var audioContext = new webkitAudioContext();
-	var analyser = audioContext.createAnalyser();
-	var source = audioContext.createMediaElementSource(audio);
-	source.connect(analyser);
-	analyser.connect(audioContext.destination);
-	audio.play();
 	run(0)	
 }
 
@@ -92,7 +119,7 @@ function measure(run){
 }
 
 // rather performant canvas code 
-drawspectogram = function(){
+function drawspectogram(){
 	var canvas = document.getElementById("myCanvas");
 	var canvasWidth = canvas.width;
 	var canvasHeight = canvas.height;
