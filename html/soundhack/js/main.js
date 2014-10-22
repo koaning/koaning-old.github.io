@@ -36,7 +36,7 @@ function createAudioElement(urls) {
 }
 
 function playAudio(){
-    var audio = createAudioElement(['untitled.mp3' ]);      
+    var audio = createAudioElement(['Untitled.mp3' ]);      
     if(audio){
         var source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
