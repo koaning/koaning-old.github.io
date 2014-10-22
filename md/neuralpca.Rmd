@@ -141,3 +141,12 @@ m1 = as.matrix(df)
 m2 = rbind(t(as.vector(v1)), t(as.vector(v2)))
 m1 %*% t(m2)
 ```
+
+```{r}
+h = 2^20
+b = 2^20
+bdayp = function(n, h){
+  arr = (h-(1:h))/h
+  arr[n]
+}
+```
