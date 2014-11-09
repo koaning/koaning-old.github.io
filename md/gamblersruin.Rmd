@@ -264,16 +264,16 @@ gamblersend = function(num, maxsim){
   df
 }
 
-ends = gamblersend(200,2500) # big simulation, warning, takes long
-p = ggplot() 
+ends = gamblersend(100,2500) # big simulation, warning, takes long
+p = ggplot()
 p = p + geom_histogram(data=ends, aes(money), alpha=0.9, binwidth=1000)
-p + ggtitle("histogram of casino outcomes after 2500 bets")
+p + ggtitle("histogram of casino outcomes after 1000 gamble runs of 2500 bets")
 ```
 
-The tactic simply isn't leading to a lead positive result, we can confirm via the summary of the dataframe. 
+The tactic simply leads to a reltively thick tail. On the long run you cannot expect to make a living applying this tactic. 
 
 ```{r}
-summary(select(ends,money))
+mean(ends$money)
 ```
 
 # Conclusion 

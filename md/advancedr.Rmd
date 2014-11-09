@@ -238,41 +238,28 @@ Guess we should start switching over to ```dplyr``` very soon.
 
 ### Elegant way to simulate data 
 
-### Creating Ensembles for K-means
+## Map Plotting 
 
-In this Snippet I will evaluate the effectiveness for creating an ensemble of kmeans classifiers to cluster different datasets.
+Google Maps in R
+========================================================
 
-First I will create a dataset and plot it.
+The ```ggmap`` package can be used to plot over google tiles. It also comes with some nice tools to geocode information. 
 
 ```{r}
-df = data.frame(x1 = as.numeric(c()), x2=as.numeric(c()), center=as.factor(c()))
-centers = list(c(2.5, 1.5), c(2, 3.5), c(4,2.5))
-
-for(i in 1:length(centers)){
-  new = data.frame(x1=rnorm(150, centers[[i]][1]), x2=rnorm(150, centers[[i]][2]), center=as.factor(i) )
-  df = rbind(df, new)
-}
-
-ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) 
+library(ggmap)
+geocode("amsterdam")$lon + rnorm(10)/100
+geocode("amsterdam")$lon + rnorm(10)/100
 ```
 
-We can now run a simple kmeans algorithm and confirm that it finds the appropriate centers. 
+You can also embed plots, for example:
 
-```{r}
-mod = as.data.frame(kmeans(select(df, x1, x2), 3)$centers )
-print(mod)
-ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) + geom_point(data=mod, aes(x1,x2), size=5) 
-```
+```{r fig.width=7, fig.height=6}
+df = data.frame(
+  lon=geocode("amsterdam")$lon + rnorm(100)/100,
+  lat=geocode("amsterdam")$lat + rnorm(100)/100,
+  foobar = ifelse(runif(100)<0.5,"yes","no")
+)
 
-We will now resample and run kmeans multiple times. 
-```{r}
-res = data.frame(x1 = as.numeric(c()), x2=as.numeric(c()))
-for( i in 1:200){
-  a = as.data.frame( kmeans(sample_n(select(df, x1, x2), 300), 4)$centers )
-  a$centers = as.factor(c(1,2,3,4))  
-  res = rbind(res, a)
-}
-
-ggplot() + geom_point(data=df, aes(x1,x2, colour=center)) + geom_point(data=res, aes(x1, x2))
-kmeans(select(res, x1, x2), 4)$centers
+qmap("amsterdam", zoom=13) + geom_point(data=df, aes(lon,lat))
+qmap("amsterdam", zoom=14, source = "stamen", maptype = "toner") + geom_point(data=df, aes(lon,lat, colour=foobar)) + facet_grid( foobar ~ .)
 ```
