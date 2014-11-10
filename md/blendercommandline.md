@@ -1,4 +1,4 @@
-# rendering disasters in blender
+# automated python rendering in blender
 
 ### blender install on a server 
 
@@ -12,6 +12,7 @@
 # filename = '/Users/code/Development/koaning.github.io/md/coloredrain.py'
 # exec(compile(open(filename).read(), filename, 'exec'))
 
+import bpy
 import math 
 import random
 import uuid
@@ -53,9 +54,6 @@ def setMaterial(ob, mat):
 deltype()
 deltype("Camera")
 deltype("Land")
-bpy.data.lamps['Point'].energy = 10
-
-# bpy.data.lamps['Point'].energy = 10
 
 def block(x,y,z,rot):
 	bpy.ops.mesh.primitive_cube_add( radius=random.random(), location = (x,y,z/2.0) )
@@ -76,23 +74,37 @@ def bomb(x,y,z):
 for z in range(2,100):
 	bomb(0,0,z)
 
-bpy.data.scenes['Scene'].frame_end=80
+bpy.data.scenes["Scene"].render.engine = 'CYCLES'
+bpy.data.scenes['Scene'].frame_end=5
 bpy.ops.render.render(animation=True, use_viewport=True)
 ```
 
 ### run this shit on blender 
 
+If you are running this on a mac you will need to make sure your ```.bash_profile``` knows where to find the blender command. On open source operating systems you will need to do something similar. 
+
 ```
-$ blender --python /Users/code/Development/koaning.github.io/md/coloredrain.py
-Color management: using fallback mode for management
-ndof: 3Dx driver not found
-BLF_lang_init: 'locale' data path for translations not found, continuing
-Read new prefs: /Users/code/Library/Application Support/Blender/2.71/config/userpref.blend
-Warning! bundled python not found and is expected on this platform. (if you built with CMake: 'install' target may have not been built)
-Fatal Python error: Py_Initialize: unable to load the file system codec
-ImportError: No module named 'encodings'
-Abort trap: 6
+alias blender=/Applications/blender.app/Contents/MacOS/blender
 ```
+
+For more info see [this link](http://blender.stackexchange.com/questions/2078/how-to-use-blender-command-lines-in-osx).
+
+###### Run python script and render to /tmp/ 
+
+```
+$ blender -y -b -x 1 -F MOVIE -o /Users/code/Desktop/blender-output --engine CYCLES --python /Users/code/Development/koaning.github.io/md/coloredrain.py
+```
+
+###### Run python script and render to movie file
+
+
+```
+$ blender -y -b -x 1 -F MPEG -o /blender-out/ --engine CYCLES --python /coloredrain.py
+```
+
+For more info about the command line options for blender please check [this link](http://wiki.blender.org/index.php/Doc:2.6/Manual/Render/Command_Line).
+
+
 
 ### stuff to extract video 
 

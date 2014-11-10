@@ -1,6 +1,7 @@
 # filename = '/Users/code/Development/koaning.github.io/md/coloredrain.py'
 # exec(compile(open(filename).read(), filename, 'exec'))
 
+import bpy
 import math 
 import random
 import uuid
@@ -62,6 +63,13 @@ def bomb(x,y,z):
 for z in range(2,100):
 	bomb(0,0,z)
 
-bpy.data.scenes["Scene"].render.engine = 'CYCLES'
-bpy.data.scenes['Scene'].frame_end=5
+bpy.data.scenes['Scene'].render.engine = 'CYCLES'
+# bpy.data.scenes['Scene'].render.resolution_x = 2048
+# bpy.data.scenes['Scene'].render.resolution_y = 1080
+# bpy.data.scenes['Scene'].render.resolution_percentage = 50
+# bpy.data.scenes['Scene'].render.use_antialiasing = True
+# bpy.data.scenes['Scene'].render.use_full_sample = True
+bpy.data.scenes['Scene'].cycles.samples = 50
+bpy.data.scenes['Scene'].frame_end=25
+
 bpy.ops.render.render(animation=True, use_viewport=True)
