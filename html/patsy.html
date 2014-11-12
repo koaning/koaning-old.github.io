@@ -73,7 +73,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 df = pd.read_csv("https://raw.githubusercontent.com/pydata/pandas/master/pandas/tests/data/iris.csv")
 y,X = patsy.dmatrices("Name ~ SepalLength + SepalWidth + PetalLength + PetalWidth", df)
-</code></pre>
+</code></pre><br>
 
 <p>Apon inspection of <code>y</code> you can clearly see that it has done the assigining of vectors appropriately.</p>
 
@@ -87,7 +87,7 @@ DesignMatrix with shape (150, 3)
                   1                      0                     0
                   1                      0                     0
                   1                      0                     0
-</code></pre>
+</code></pre><br>
 
 <p>Just like R, it will have also added an intercept for the <code>X</code> data.</p>
 
@@ -122,7 +122,8 @@ array([[50,  0,  0],
        [ 0, 50,  0],
        [ 0,  0, 50]])</code></pre>
 
-<p>It might feel silly, but discovering this made me want to turn my focus more towards python. </p>
+<br>
+<p> With this addition, python is starting to feel more and more like a de-facto solution for data science compared to R. The only thing missing is a fully functional ```ggplot2``` library. </p>
 
 
 </div>
