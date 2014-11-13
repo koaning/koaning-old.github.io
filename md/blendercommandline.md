@@ -1,28 +1,18 @@
-# automated python rendering in blender
+# Automated Python Rendering in Blender
 
-### blender install on a server 
+In a previous post I've described how to generate objects in blender through python. In this document I will describe how to use such python scripts from the command line to render animations. I will also show how to outsource this rendering to a server so that your laptop doesn't need to suffer. 
 
-```
+### Blender Python Script 
 
-```
-
-### blender python script 
+This script below generates a rain of randomly sized and colored cubes. You can paste this code into the blender command line to see the result.
 
 ```
-# filename = '/Users/code/Development/koaning.github.io/md/coloredrain.py'
-# exec(compile(open(filename).read(), filename, 'exec'))
+# filename: colored_rain.py
 
 import bpy
 import math 
 import random
 import uuid
-
-def create_flat():
-    bpy.ops.mesh.primitive_cube_add( radius=0.5, location = (0,0,-0.25))
-    bpy.ops.rigidbody.object_add()
-    bpy.context.active_object.rigid_body.type = 'PASSIVE'
-    bpy.ops.transform.resize(value=(40,40,1))
-    bpy.context.selected_objects[0].name = 'Land'
 
 def select_type(meshtype="Cube"):
     for ob in bpy.context.scene.objects:
@@ -35,25 +25,19 @@ def deltype(meshtype="Cube"):
 def makeMaterial(name, diffuse, specular, alpha):
     mat = bpy.data.materials.new(name)
     mat.diffuse_color = diffuse
-    mat.diffuse_shader = 'LAMBERT' 
-    mat.diffuse_intensity = 1.0 
     mat.specular_color = specular
-    mat.specular_shader = 'COOKTORR'
-    mat.specular_intensity = 0.5
     mat.alpha = alpha
-    mat.ambient = 1
     return mat
 
 def randomMaterial():
-	return makeMaterial('mat' + uuid.uuid4().hex[0:6], (random.random(),random.random(),random.random()), (1,1,1),1 )
+    randvec = (random.random(), random.random(), random.random())
+    return makeMaterial('mat' + uuid.uuid4().hex[0:6], randvec, (1,1,1), 1)
 
 def setMaterial(ob, mat):
     me = ob.data
     me.materials.append(mat)
 
 deltype()
-deltype("Camera")
-deltype("Land")
 
 def block(x,y,z,rot):
 	bpy.ops.mesh.primitive_cube_add( radius=random.random(), location = (x,y,z/2.0) )
@@ -61,8 +45,7 @@ def block(x,y,z,rot):
 	bpy.context.active_object.rigid_body.type = 'ACTIVE'
 	rand_axis = (random.random(),random.random(),random.random())
 	bpy.ops.transform.rotate(value=rot, axis=rand_axis)
-	mat = randomMaterial()
-	setMaterial(bpy.context.object, mat)
+	setMaterial(bpy.context.object, randomMaterial())
 
 def bomb(x,y,z):
 	for i in range(4):
@@ -74,25 +57,48 @@ def bomb(x,y,z):
 for z in range(2,100):
 	bomb(0,0,z)
 
-bpy.data.scenes["Scene"].render.engine = 'CYCLES'
-bpy.data.scenes['Scene'].frame_end=5
+bpy.data.scenes['Scene'].render.engine = 'CYCLES'
+bpy.data.scenes['Scene'].cycles.samples = 10
+bpy.data.scenes['Scene'].frame_end = 5
+bpy.data.scenes['Scene'].render.fps = 100
+
 bpy.ops.render.render(animation=True, use_viewport=True)
 ```
 
-### run this shit on blender 
+We can click render in the blender ui but we could also use the python-api via command line to do this for us. The two main benefits are that we are not slowed down by the also rendering a GUI and that we can also use a server to do the calculation for us. 
 
-If you are running this on a mac you will need to make sure your ```.bash_profile``` knows where to find the blender command. On open source operating systems you will need to do something similar. 
+### Blender from the command line
+
+#### Getting the CL to work. 
+
+We will first need to make sure that we can run blender from the command line. If you are running this on a mac you will need to make sure your ```.bash_profile``` knows where to find the blender command. On open source operating systems you will need to do something similar unless you installed it via ```apt-get install blender```. 
 
 ```
 alias blender=/Applications/blender.app/Contents/MacOS/blender
 ```
 
-For more info see [this link](http://blender.stackexchange.com/questions/2078/how-to-use-blender-command-lines-in-osx).
+For more info see [this link](http://blender.stackexchange.com/questions/2078/how-to-use-blender-command-lines-in-osx). 
+
+#### Running the CL 
+
+The blender command line offers many opportunities to automate things. Consider the following command: 
+
+```
+$ blender -y -b -x 1 -o /some/output/dir/ --engine CYCLES --python /path/to/script/colored_rain.py
+```
+
+This command will not prompt the user to confirm anything (via ```-y```), it will run in the background (so no gui, via ```-b```), it will use 
+### blender install on a server 
+
+```
+apt-get update 
+apt-get install blender 
+```
 
 ###### Run python script and render to /tmp/ 
 
 ```
-$ blender -y -b -x 1 -F MOVIE -o /Users/code/Desktop/blender-output --engine CYCLES --python /Users/code/Development/koaning.github.io/md/coloredrain.py
+$ blender -y -b -x 1 -o /Users/code/Desktop/blender-output --engine CYCLES --python /Users/code/Development/koaning.github.io/md/coloredrain.py
 ```
 
 ###### Run python script and render to movie file
@@ -104,9 +110,19 @@ $ blender -y -b -x 1 -F MPEG -o /blender-out/ --engine CYCLES --python /coloredr
 
 For more info about the command line options for blender please check [this link](http://wiki.blender.org/index.php/Doc:2.6/Manual/Render/Command_Line).
 
+###### background command 
 
+```
+$ nohup blender -y -b -x 1 -F MPEG -o /blender-out/ --engine CYCLES --python /coloredrain.py & 
+```
 
-### stuff to extract video 
+You can check the render status via
+
+```
+tail nohup.out
+```
+
+### safer rendering 
 
 There is a nice command line tool that does a lot of work for you called ```ffmpeg```, which you can download on via 
 
