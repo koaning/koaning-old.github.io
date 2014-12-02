@@ -7,15 +7,54 @@ This document describes some lessons I would like to teach on the advanced subje
 library(microbenchmark)
 library(dplyr)
 library(ggplot2)
+library(randomForest)
 ```
 
 ## R Vocabulary 
 
 R is full of functions. Many of them are very useful albeit infrequently used and unknown. Here I have a list of such functions. 
 
-```{r}
-
 ```
+?
+rm
+```
+
+## Style 
+
+### The damn assignment operator 
+
+R can sometimes feel a little silly when you are used to a different programming language. Example, the following assignments are valid: 
+
+```{r}
+x = 2 
+x <- 2 
+2 -> x 
+```
+
+There is some debate on which is better. A lot of confusion arises from this. 
+
+
+```{r}
+add = function(a,b){
+  return(a + b)
+}
+
+add(a=3, b=2)
+a
+b
+
+add(x1<-1, x2<-2)
+a
+b
+
+add(a<-1, b<-2)
+a
+b
+
+rm(a)
+rm(b) 
+```
+
 
 ## Functional Programming 
 
@@ -42,25 +81,25 @@ We can take this a step further by also adding ```if``` statements in our code.
 
 ```{r}
 posneg = function(a){
-  if(a<0) return('neg')
+  if (a<0) return('neg')
   else if(a>0) return('pos')
   else '0'
 }
 
 posneg = function(a){
-  if(a<0) 'neg'
-  else if(a>0) 'pos'
+  if (a<0) 'neg'
+  else if (a>0) 'pos'
   else '0'
 }
 
 posneg = function(a){
-  if(a<0) 'neg'
-  if(a>0) 'pos'
+  if (a<0) 'neg'
+  if (a>0) 'pos'
   '0'
 }
 ```
 
-Usually, it is preferable that you use as little characters as possible, as long as the code remains clear to your collegues. 
+Usually, it is preferable that you use as little characters as possible, as long as the code remains clear to your collegues. For larger codebases I can actually recommend that you use backets ```{}```.
 
 #### Functions as input
 
@@ -70,7 +109,7 @@ A possible way would be to do the following:
 
 ```{r}
 runfunc = function(a,b,f){
-  if(f == "add"){
+  if (f == "add"){
     return(a+b)
   }else{
     return(a*b)
@@ -93,23 +132,73 @@ runfunc = function(a,b,f){
 }
 ```
 
-#### Functions as Output 
+#### Functions as Output, Clojures
+
+A more powerful example of what I have just shown : 
+
+```{r}
+power = function(exponent) {
+  function(x) x ^ exponent
+}
+
+square = power(2)
+square(2) # -> [1] 4
+square(4) # -> [1] 16
+
+cube = power(3)
+cube(2) # -> [1] 8
+cube(4) # -> [1] 64
+
+power(4)(3)
+```
+
+#### ```<<-``` vs ```<-``` 
+
+It's all about scope. 
+
+```{r}
+counter = function() {
+  i <- 0
+  function() {
+    i <<- i + 1
+    i
+  }
+}
+
+c1 = counter() 
+c2 = counter() 
+
+bad_counter = function(){
+  i = 0
+  function() {
+    i = i + 1
+    i
+  }
+}
+
+c3 = bad_counter()
+c1()
+c1()
+c1()
+c2()
+c2()
+c3()
+c3()
+```
 
 ##### Recursion 
 
-- fibonachi 
-- 
-
-#### Clojures 
-
-- forloop as a function 
+```{r}
+fib = function(len){
+  if (len == 1) return(1)
+  if (len == 2) return(1)
+  return(fib2(len-1) + fib2(len-2))
+}
+```
 
 ### Applications 
 
 #### Numerical Integration 
-
-#### A list of formulas, applied to lm 
-
 
 ## ggplot2 & reshape2 
 
@@ -167,9 +256,9 @@ Possible exercizes:
 
 ```{r}
 fib1 = function(len){
-  fibvals <- numeric(len)
-  fibvals[1] <- 1
-  fibvals[2] <- 1
+  fibvals = numeric(len)
+  fibvals[1] = 1
+  fibvals[2] = 1
   for (i in 3:len) { 
      fibvals[i] <- fibvals[i-1]+fibvals[i-2]
   }
@@ -232,10 +321,6 @@ microbenchmark(
 
 Guess we should start switching over to ```dplyr``` very soon. 
 
-
-
-## Profiling 
-
 ### Elegant way to simulate data 
 
 ## Map Plotting 
@@ -262,4 +347,167 @@ df = data.frame(
 
 qmap("amsterdam", zoom=13) + geom_point(data=df, aes(lon,lat))
 qmap("amsterdam", zoom=14, source = "stamen", maptype = "toner") + geom_point(data=df, aes(lon,lat, colour=foobar)) + facet_grid( foobar ~ .)
+```
+
+## Automation 
+
+#### A list of formulas, applied to lm 
+
+You need to think more and more like an engineer as a data scientist. 
+
+```{r}
+formulas = c(
+  as.formula("weight ~ Time"),
+  as.formula("weight ~ Time + Diet"),
+  as.formula("weight ~ Diet")
+)
+
+for(form in formulas){
+  print("form")
+  print(lm(formula=form, data=ChickWeight))
+}
+```
+
+#### Different methods 
+
+```{r}
+formulas = c(
+  as.formula("weight ~ Time"),
+  as.formula("weight ~ Time + Diet"),
+  as.formula("weight ~ Diet")
+)
+
+methods = list(lm, randomForest)
+names(methods) = c('regression', 'forest')
+
+mse = function(arr1, arr2){
+  sum((arr1-arr2)^2)
+}
+
+lowest = 99^99
+for(method in methods){
+  for(form in formulas){
+    model = method(formula=form, data=ChickWeight)
+    currmse = mse(select(ChickWeight, weight), predict(model, ChickWeight));
+  }
+}
+```
+
+## Data Science 
+
+#### ```dplyr``` basic syntax 
+
+#### ```ggplot2``` basic syntax 
+
+#### basic simulation pattern in R
+
+#### Building your own Regressor
+
+Simulation is simple. 
+
+```{r}
+len = 40
+x1 = sapply(1:len, sin)
+x2 = sapply(seq(1, len/2 + 0.5, 0.5), cos)
+y = 1 * x1 + 1 * x2 + rnorm(40)
+df = data.frame(y=y, x1=x1, x2=x2)
+```
+
+We can create an error function. 
+
+```{r}
+error = function(df, b1, b2){
+   y - b1*df$x1 - b2*df$x2
+}
+
+error = function(df, b1, b2){
+   (y - b1*df$x1 - b2*df$x2)^2
+}
+
+error = function(df, b1, b2){
+   sum((y - b1*df$x1 - b2*df$x2)^2)
+}
+
+edf = data.frame(b1 = as.numeric(), b2 = as.numeric(), e = as.numeric())
+for( b1 in seq(0,5,0.1) ){
+  for( b2 in seq(0,5,0.1) ){
+    newline = data.frame(b1=b1, b2=b2, e=error(df, b1, b2))
+    edf = rbind(edf, newline)
+  }
+}
+
+ggplot() + geom_point(data=filter(edf, b2 == 1), aes(x=b1, y=e))
+ggplot() + geom_point(data=filter(edf, b1 == 2), aes(x=b2, y=e))
+ggplot() + geom_tile(data=edf, aes(x=b1, y=b2, fill=e), colour='white')
+ggplot() + geom_tile(data=edf, aes(x=b1, y=b2, fill=e<60), colour='white')
+```
+
+Time to refactor some things. 
+
+```{r}
+generate = function(len=40, b1=2.5, b2=2.5){
+  x1 = sapply(1:len, sin)
+  x2 = sapply(seq(1, len/2 + 0.5, 0.5), cos)
+  y = b1 * x1 + b2 * x2 + rnorm(len)
+  return(data.frame(y=y, x1=x1, x2=x2))
+}
+
+error = function(df, b1, b2){
+   sum((df$y - b1*df$x1 - b2*df$x2)^2)
+}
+
+make_seq = function(x, stepsize){
+  seq(x - stepsize * 10, x + stepsize * 10, stepsize)
+}
+
+errordf = function(df, b1, b2, stepsize){
+  edf = data.frame(b1 = as.numeric(), b2 = as.numeric(), e = as.numeric())
+  for( b1_i in make_seq(b1, stepsize) ){
+	  for( b2_i in make_seq(b1, stepsize) ){
+	    newline = data.frame(b1 = b1_i, b2 = b2_i, e = error(df, b1_i, b2_i))
+	    edf = rbind(edf, newline)
+	  }
+	}
+  edf
+}
+  
+findfit = function(df, b1, b2, stepsize){
+  if (stepsize < 0.001 ) return(c(b1,b2))
+  edf = errordf(df, b1, b2, stepsize)
+  # print(select(edf) %>% filter(e == min(edf$e)) %>% select(e))
+  min_b1 = select(edf) %>% filter(e == min(edf$e)) %>% select(b1) %>% as.numeric
+  min_b2 = select(edf) %>% filter(e == min(edf$e)) %>% select(b2) %>% as.numeric
+  return(findfit(df, min_b1, min_b2, stepsize/2))
+}
+
+df = generate(100)
+findfit(df, 3, 3, 1)
+lm('y ~ x1 + x2', df)
+```
+
+Compare our output with the standard linear regressor. 
+
+# Concluding Tips 
+
+## dealing with large files 
+
+##### ```read.table```
+
+```{r}
+read.table('/Users/code/Downloads/0001.csv', nrows=50, sep = ',')
+```
+
+##### ```data.tables```
+
+```{r}
+library(data.table)
+df = fread('/Users/code/Downloads/train')
+```
+
+##### ```sqldf```
+
+```{r}
+library(sqldf)
+sqldf('select weight from ChickWeight')
+read.csv.sql('/Users/code/Downloads/0001.csv', 'select * from file limit 10')
 ```
