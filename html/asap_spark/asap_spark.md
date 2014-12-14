@@ -9,7 +9,7 @@ In this small document I will explain a quick way to get data on S3 analyzed. It
 ### Download packages and setup AWS 
 
 ```
-./spark-ec2 -k hadoop_env -i ~/.ssh/hadoop_env -s 6 launch sparkle
+./spark-ec2 -k hadoop_env -i ~/.ssh/hadoop_env -z us-east-1b -s 6 launch sparkle
 ```
 
 You can then check the master node name form the command line. 
