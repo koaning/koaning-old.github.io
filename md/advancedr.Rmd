@@ -282,7 +282,10 @@ microbenchmark(
   "$carb[32]"     = mtcars$carb[32],
   "[[c(11, 32)]]" = mtcars[[c(11, 32)]],
   "[[11]][32]"    = mtcars[[11]][32],
-  ".subset2"      = .subset2(mtcars, 11)[32]
+  ".subset2"      = .subset2(mtcars, 11)[32],
+  "dplyr 1"       = mtcars %>% select(11) %>% slice(32),
+  "dplyr 2"       = select(mtcars, 11) %>% slice(32),
+  "dplyr 3"       = slice(select(mtcars, 11),32)
 )
 ```
 
@@ -320,6 +323,48 @@ microbenchmark(
 ```
 
 Guess we should start switching over to ```dplyr``` very soon. 
+
+
+### Profiling 
+
+```{r}
+library(devtools)
+devtools::install_github("hadley/lineprof")
+library(lineprof)
+
+f <- function() {
+  pause(0.1)
+  g()
+  h()
+}
+g <- function() {
+  pause(0.1)
+  h()
+}
+h <- function() {
+  pause(0.1)
+}
+
+l <- lineprof(f())
+l
+```
+
+## Parallel Code 
+
+```{r}
+library(parallel)
+
+cores <- detectCores()
+cores
+#> [1] 32
+
+pause <- function(i) {
+  function(x) Sys.sleep(i)
+}
+
+system.time(lapply(1:10, pause(0.25)))
+system.time(mclapply(1:10, pause(0.25), mc.cores = cores))
+```
 
 ### Elegant way to simulate data 
 
@@ -399,7 +444,75 @@ for(method in methods){
 
 #### ```ggplot2``` basic syntax 
 
-#### basic simulation pattern in R
+#### ```caret``` basics 
+
+```{r}
+library(mlbench)
+library(caret)
+library(randomForest)
+set.seed(123)
+data(Sonar)
+str(Sonar[, 1:10])
+inTraining = createDataPartition(Sonar$Class, p = 0.75, list = FALSE)
+training = Sonar[inTraining, ]
+testing = Sonar[-inTraining, ]
+```
+
+We have now split the Sonar dataset in the training and test set. 
+
+```{r}
+# http://topepo.github.io/caret/modelList.html
+tuning_params = expand.grid(size = 1:12, decay=0)
+
+fitControl = trainControl(## 10-fold CV
+                           method = "repeatedcv",
+                           number = 4,
+                           ## repeated ten times
+                           repeats = 10)
+
+fit = train(Class ~ ., data = training,
+                 method = "nnet",
+                 trControl = fitControl,
+                 verbose = FALSE,
+                 tuneGrid = tuning_params)
+fit
+varImp(fit)
+plot(fit)
+```
+
+#### basic parallel simulation pattern in R
+
+```{r}
+library(parallel)
+library(MASS)
+library(microbenchmark)
+
+test <- lapply(1:100,function(x) rnorm(10000))
+
+df = data.frame(cores=as.numeric(), time=as.numeric())
+
+for( i in 1:10 ){
+  print(i)
+  t = system.time(x <- lapply(test,function(x) loess.smooth(x,x)))
+  df = rbind(df, data.frame(cores=as.numeric(0), time=t[[3]]))
+}
+
+for (i1 in 1:10){
+  for (i2 in 1:5){
+    print(c(i1,i2))
+    t = system.time(x <- mclapply(test,function(x) loess.smooth(x,x), mc.cores=i1))
+    df = rbind(df, data.frame(cores=as.numeric(i1), time=t[[3]]))
+  }
+}
+
+ggplot() + geom_point(data=df, aes(cores, time)) + ggtitle("Higher performance when cores are added (8-core machine)")
+```
+
+You can detect the number of maximum cores via:
+
+```{r}
+options(mc.cores = detectCores())
+```
 
 #### Building your own Regressor
 
@@ -487,6 +600,9 @@ lm('y ~ x1 + x2', df)
 
 Compare our output with the standard linear regressor. 
 
+## Variable Selection Basics
+
+
 # Concluding Tips 
 
 ## dealing with large files 
@@ -501,7 +617,7 @@ read.table('/Users/code/Downloads/0001.csv', nrows=50, sep = ',')
 
 ```{r}
 library(data.table)
-df = fread('/Users/code/Downloads/train')
+df = fread('/Users/code/Downloads/train', select = c('colname1', 'colname2'), colClasses = c('character', 'integer'), sep = ',')
 ```
 
 ##### ```sqldf```
@@ -511,3 +627,28 @@ library(sqldf)
 sqldf('select weight from ChickWeight')
 read.csv.sql('/Users/code/Downloads/0001.csv', 'select * from file limit 10')
 ```
+
+# Visualisation 
+
+Google Maps in R
+========================================================
+
+```{r}
+library(ggmap)
+geocode("amsterdam")$lon + rnorm(10)/100
+geocode("amsterdam")$lon + rnorm(10)/100
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+df = data.frame(
+  lon=geocode("amsterdam")$lon + rnorm(100)/100,
+  lat=geocode("amsterdam")$lat + rnorm(100)/100,
+  foobar = ifelse(runif(100)<0.5,"yes","no")
+)
+
+qmap("amsterdam", zoom=13) + geom_point(data=df, aes(lon,lat))
+qmap("amsterdam", zoom=14, source = "stamen", maptype = "toner") + geom_point(data=df, aes(lon,lat, colour=foobar)) + facet_grid( foobar ~ .)
+```
+

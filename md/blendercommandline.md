@@ -47,7 +47,7 @@ def block(x,y,z,rot):
 	bpy.ops.transform.rotate(value=rot, axis=rand_axis)
 	setMaterial(bpy.context.object, randomMaterial())
 
-def bomb(x,y,z):
+def blocks(x,y,z):
 	for i in range(4):
 		x = x + random.random()*2
 		y = y + random.random()*2
@@ -55,17 +55,19 @@ def bomb(x,y,z):
 		block(x,y,z,rot)
 
 for z in range(2,100):
-	bomb(0,0,z)
+	blocks(0,0,z)
 
+# these are the render settings
 bpy.data.scenes['Scene'].render.engine = 'CYCLES'
 bpy.data.scenes['Scene'].cycles.samples = 10
-bpy.data.scenes['Scene'].frame_end = 5
+bpy.data.scenes['Scene'].frame_end = 250
 bpy.data.scenes['Scene'].render.fps = 100
 
+# this command signals the actual render 
 bpy.ops.render.render(animation=True, use_viewport=True)
 ```
 
-We can click render in the blender ui but we could also use the python-api via command line to do this for us. The two main benefits are that we are not slowed down by the also rendering a GUI and that we can also use a server to do the calculation for us. 
+The python script renders a scene, fills it with boxes, sets up a camera and applies render settings. We can click render in the blender ui but we could also use the python-api via command line to do this for us. The two main benefits are that we are not slowed down by the also rendering a GUI and that we can also use a server to do the calculation for us, leaving our working computer free to do other things. 
 
 ### Blender from the command line
 
@@ -84,16 +86,32 @@ For more info see [this link](http://blender.stackexchange.com/questions/2078/ho
 The blender command line offers many opportunities to automate things. Consider the following command: 
 
 ```
-$ blender -y -b -x 1 -o /some/output/dir/ --engine CYCLES --python /path/to/script/colored_rain.py
+$ blender -y -b -x 1 -o /some/output/dir/ --engine CYCLES --python /path/to/script/python_script.py
 ```
 
-This command will not prompt the user to confirm anything (via ```-y```), it will run in the background (so no gui, via ```-b```), it will use 
+blender -y -b -x 1 -o //Users/code/Desktop/output/ --engine CYCLES --python /Users/code/Desktop/script.py
+
+
+The python script contains rendering details, so blender will just run these and output them in the specified folder. This command will not prompt the user to confirm anything (via ```-y```) and it will run in the background (so no gui, via ```-b```). For morge info check the ```man blender``` command. 
+
 ### blender install on a server 
 
+We want blender to run on a server instead of our local machine. This is better for your rendering as well as other work you might want to do on your local machine. 
+
+You can get a cheap server at amazon or digital ocean. If you get an ubuntu image, installing blender is straightforward. 
+
 ```
-apt-get update 
-apt-get install blender 
+apt-get -y update 
+apt-get -y install blender 
 ```
+
+You only need to copy the python script to the server if you want to run it. This is easy with a secure copy. 
+
+```
+scp /local/path/script.py root@<ip adres>:/server/path/script.py
+```
+
+With the script in place you then you are ready to run some commands from the command line on the server. 
 
 ###### Run python script and render to /tmp/ 
 
@@ -112,6 +130,8 @@ For more info about the command line options for blender please check [this link
 
 ###### background command 
 
+You will want to run this command as a background task such that you don't need to open another terminal to see what is happening. This can be done via the ```nohup <command> &``` trick. 
+
 ```
 $ nohup blender -y -b -x 1 -F MPEG -o /blender-out/ --engine CYCLES --python /coloredrain.py & 
 ```
@@ -122,19 +142,8 @@ You can check the render status via
 tail nohup.out
 ```
 
-### safer rendering 
+### Conclusion
 
-There is a nice command line tool that does a lot of work for you called ```ffmpeg```, which you can download on via 
+To conclude I would like to point out that any button in blender can be set via python as well. If you keep your mouse over a button, the python code that's needed appears. That also means that you can code the render settings. Cheaper severs will not be able to render as quickly as inexpensive servers so you might need to be mindful of what you do.  
 
-```
-brew install ffmpeg
-apt-get install ffmpeg
-yum install ffmpeg 
-```
-
-The following command renders at 24 frames per second, takes all the images in the current folder that start with 4 digits and outpust a 1024K ```video.mpg``` file.
-
-```
-ffmpeg -r 24 -i %04d.png -vb 1024K video.mpg
-```
-
+You are giving the server an expensive calculation to do, especially when you are running things on high settings. 

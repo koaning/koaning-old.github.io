@@ -117,6 +117,7 @@ shinyServer(function(input, output) {
 
 <p>This app runs a random forest regression task on a small dataset. It splits the data into training and test set and you as a user will be able to specify how many trees the random forest needs to use. We keep track of the performance of the training and test set for each time the user specifies the number of trees. In other words, we are keeping track of state as the user supplies the shiny app with input.</p>
 
+<h3>The output</h3>
 <img src="/img/shiny.png" alt="">
 
 <p>To understand how this works, notice these two lines specifically:</p>
@@ -127,9 +128,9 @@ count &lt;&lt;- count + 1
 
 <p>The app will fail if we use <code>&lt;-</code> instead of <code>&lt;&lt;-</code>. Why? Because the variables that we are trying to update (the variables that keep track of the count and random forest performance) are outside of scope otherwise. By using this pattern, we can keep state of what the user is giving the dashboard as input. You might even consider logging the users behavior this way.</p>
 
-<h3>running it locally</h3>
+<h3>Running this locally</h3>
 
-<p>If you want to run this code locally immediately, just run the following command in Rstudio:</p>
+<p>If you want to run this code immediately, just run the following command in Rstudio (make sure that you have shiny installed via the package manager):</p>
 
 <pre><code>shiny::runGist("https://gist.github.com/koaning/1b7b52e03ba5d81d5966")
 </code></pre>
