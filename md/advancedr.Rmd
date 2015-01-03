@@ -33,7 +33,6 @@ x <- 2
 
 There is some debate on which is better. A lot of confusion arises from this. 
 
-
 ```{r}
 add = function(a,b){
   return(a + b)
@@ -55,6 +54,7 @@ rm(a)
 rm(b) 
 ```
 
+I prefer to use ```=``` for consistency with other programming language. Feel free to use whatever you prefer, but be consistent in your choice. 
 
 ## Functional Programming 
 
@@ -76,6 +76,7 @@ add = function(a,b) a + b
 These three functions do exactly the same thing. A few things to note: 
 - a function does not need a ```return``` statement to return a value, if no return statement is given it will return the final value on the body of the function 
 - a function does not need curly brackets if you are only running one line of code. 
+- you can immediately see that we could use a style guide when working together in a group. 
 
 We can take this a step further by also adding ```if``` statements in our code. 
 
@@ -93,8 +94,8 @@ posneg = function(a){
 }
 
 posneg = function(a){
-  if (a<0) 'neg'
-  if (a>0) 'pos'
+  if (a<0) return('neg')
+  if (a>0) return('pos')
   '0'
 }
 ```
@@ -188,6 +189,10 @@ c3()
 
 ##### Recursion 
 
+Recursion is the most extreme version of a function calling another function. 
+
+> To understand recursion, you need to understand recursion.
+
 ```{r}
 fib = function(len){
   if (len == 1) return(1)
@@ -200,6 +205,9 @@ fib = function(len){
 
 #### Numerical Integration 
 
+```{r}
+
+```
 ## ggplot2 & reshape2 
 
 ```{r results='hide', message=FALSE, warning=FALSE} 
@@ -210,10 +218,17 @@ library(reshape2)
 lazy evaluation of ggplot 
 show the reshape2 tools 
 
-## apply, sapply, lapply, dplyr
+## apply, sapply, lapply
 
 ```{r results='hide', message=FALSE, warning=FALSE}
 library(dplyr)
+```
+
+## dplyr & chaining
+
+```{r}
+df = ChickWeight
+
 ```
 
 ## Performance 
@@ -480,7 +495,7 @@ varImp(fit)
 plot(fit)
 ```
 
-#### basic parallel simulation pattern in R
+#### basic parallel pattern in R
 
 ```{r}
 library(parallel)
@@ -505,7 +520,12 @@ for (i1 in 1:10){
   }
 }
 
-ggplot() + geom_point(data=df, aes(cores, time)) + ggtitle("Higher performance when cores are added (8-core machine)")
+av = df %>% filter(cores == 0) %>% summarise(mean = mean(time))
+p = ggplot() + geom_point(data=df, aes(cores, time)) 
+p + ggtitle("Higher performance when cores are added (8-core machine)")
+
+p = p + geom_line(aes(x = seq(1,10,0.01), y = av[[1]]/seq(1,10,0.01)), colour="red") 
+p + ggtitle("Higher performance when cores are added (8-core machine)")
 ```
 
 You can detect the number of maximum cores via:
@@ -514,6 +534,13 @@ You can detect the number of maximum cores via:
 options(mc.cores = detectCores())
 ```
 
+
+#### bootstrapping 
+
+Sometimes the dataset is too big because you have a CPU bound. R is uaully single threaded. Possible solution: bootstrapping. 
+This combines well with the multicore approach. 
+
+
 #### Building your own Regressor
 
 Simulation is simple. 
@@ -521,36 +548,33 @@ Simulation is simple.
 ```{r}
 len = 40
 x1 = sapply(1:len, sin)
-x2 = sapply(seq(1, len/2 + 0.5, 0.5), cos)
-y = 1 * x1 + 1 * x2 + rnorm(40)
-df = data.frame(y=y, x1=x1, x2=x2)
+b0 = 3.5
+b1 = 2.3
+y = b0 + b1 * x1 + rnorm(40)
+df = data.frame(y=y, x0=1, x1=x1)
 ```
 
 We can create an error function. 
 
 ```{r}
-error = function(df, b1, b2){
-   y - b1*df$x1 - b2*df$x2
+error = function(df, b0, b2){
+   sum((y - b0*df$x0 - b1*df$x1)^2)
 }
 
-error = function(df, b1, b2){
-   (y - b1*df$x1 - b2*df$x2)^2
-}
-
-error = function(df, b1, b2){
-   sum((y - b1*df$x1 - b2*df$x2)^2)
-}
-
-edf = data.frame(b1 = as.numeric(), b2 = as.numeric(), e = as.numeric())
-for( b1 in seq(0,5,0.1) ){
-  for( b2 in seq(0,5,0.1) ){
-    newline = data.frame(b1=b1, b2=b2, e=error(df, b1, b2))
+edf = data.frame(b0 = as.numeric(), b1 = as.numeric(), e = as.numeric())
+for( b0 in seq(0,5,0.1) ){
+  for( b1 in seq(0,5,0.1) ){
+    newline = data.frame(b0=b0, b1=b1, e=error(df, b0, b1))
     edf = rbind(edf, newline)
   }
 }
+```
 
-ggplot() + geom_point(data=filter(edf, b2 == 1), aes(x=b1, y=e))
-ggplot() + geom_point(data=filter(edf, b1 == 2), aes(x=b2, y=e))
+Via looping we get the best value for beta. 
+
+```{r}
+ggplot() + geom_point(data=filter(edf, b0 == 1), aes(x=b1, y=e))
+ggplot() + geom_point(data=filter(edf, b1 == 1), aes(x=b0, y=e))
 ggplot() + geom_tile(data=edf, aes(x=b1, y=b2, fill=e), colour='white')
 ggplot() + geom_tile(data=edf, aes(x=b1, y=b2, fill=e<60), colour='white')
 ```
@@ -558,11 +582,13 @@ ggplot() + geom_tile(data=edf, aes(x=b1, y=b2, fill=e<60), colour='white')
 Time to refactor some things. 
 
 ```{r}
-generate = function(len=40, b1=2.5, b2=2.5){
+generate = function(len=40, b0=2.5, b1=2.5){
+  len = 40
   x1 = sapply(1:len, sin)
-  x2 = sapply(seq(1, len/2 + 0.5, 0.5), cos)
-  y = b1 * x1 + b2 * x2 + rnorm(len)
-  return(data.frame(y=y, x1=x1, x2=x2))
+  b0 = 3.5
+  b1 = 2.3
+  y = b0 + b1 * x1 + rnorm(40)
+  return(data.frame(y=y, x0=1, x1=x1))
 }
 
 error = function(df, b1, b2){
@@ -602,6 +628,15 @@ Compare our output with the standard linear regressor.
 
 ## Variable Selection Basics
 
+Explain the problem. 
+
+Explain the caret package.
+
+## Ensembles 
+
+```{r}
+
+```
 
 # Concluding Tips 
 
