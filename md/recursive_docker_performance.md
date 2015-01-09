@@ -1,71 +1,56 @@
 # recursive docker performance 
 
+> if you want to understand recursion, you need to understand recursion 
 
-### Docker Setup 
+I have a mac with boot2docker. I build a simple ubuntu container that contains python and docker. I will run benchmark tests in python and then run another docker inside the previous one to see where the performance drops. 
 
-I installed a basic ubuntu docker image.
+I was slightly flabbergasted to find out that running python in ubuntu is actually faster than running python on my mac. 
 
-```
-docker pull ubuntu
-docker run -i -t ubuntu /bin/bash
-```
+#### Setup 
 
-When in docker I started my first experiment, to see if the performance would go down. From the command line I would use the python ```timeit``` module to quickly check some basic performance measures. 
-
-###### Mac Python Results 
+I first open a simple ubuntu container. 
 
 ```
-$ python3.4 -m timeit '"-".join(str(n) for n in range(100))'
-10000 loops, best of 3: 37.7 usec per loop
-$ python3.4 -m timeit '"-".join([str(n) for n in range(100)])'
-10000 loops, best of 3: 34.2 usec per loop
-$ python3.4 -m timeit '"-".join(map(str, range(100)))'
-10000 loops, best of 3: 26.2 usec per loop
+$ docker run -t -i ubuntu /bin/bash
 ```
 
-###### Docker Python Results 
+I then install docker and python. 
 
 ```
-> python3 -m timeit '"-".join(str(n) for n in range(100))'
-10000 loops, best of 3: 30 usec per loop
-> python3 -m timeit '"-".join([str(n) for n in range(100)])'
-10000 loops, best of 3: 26.9 usec per loop
-> python3 -m timeit '"-".join(map(str, range(100)))'
-10000 loops, best of 3: 20.2 usec per loop
+root@618e2863f651: apt-get update
+root@618e2863f651: apt-get install -y docker.io python2.7 
+root@618e2863f651: exit 
 ```
 
-Huh? From within docker, my python code seems to be running faster. This is interesting. 
+Next, I commit the changes into a new container and push this to dockerhub such that I can easily pull it in. 
 
-### Recursion 
-
-I wonder what happens if I run a docker container from within another docker container.
-`
 ```
-python3 -m timeit '"-".join(str(n) for n in range(10000))'
-python3 -m timeit '"-".join([str(n) for n in range(10000)])'
-python3 -m timeit '"-".join(map(str, range(10000)))'
-
-apt-get update
-apt-get install -y docker.io 
-
-source /etc/bash_completion.d/docker.io
-
-[ -e /usr/lib/apt/methods/https ] || {
-  apt-get update
-  apt-get install apt-transport-https
-}
-
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-
-sh -c "echo deb https://get.docker.com/ubuntu docker main\
-> /etc/apt/sources.list.d/docker.list"
-apt-get update
-apt-get install -y lxc-docker
-
-export DOCKER_HOST=tcp://localhost:4243
-export DOCKER_CERT_PATH=/Users/code/root/certs/boot2docker-vm
-export DOCKER_TLS_VERIFY=1
-
-docker pull ubuntu
-docker run -i -t ubuntu /bin/bash
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                STATUS                           NAMES
+618e2863f651        ubuntu:latest       "/bin/bash"            Exited (0) 2 minutes ago         boring_sinoussi      
+$ docker commit boring_sinoussi koaning/recursion:0.1
+$ docker push koaning/recursion:0.1
 ```
+
+##### Benchmarks 
+
+The following code will be run to assert the python benchmark. 
+
+```
+python2.7 -m timeit '"-".join(str(n) for n in range(100000))'
+python2.7 -m timeit 'import random; sum([random.random() for i in range(500000)])'
+python2.7 -m timeit 'import random; import math; sum([math.sqrt(random.random()) for i in range(500000)])'
+```
+
+This means that from within the containers that has docker installed I can run docker recursively via: 
+
+```
+docker run -t -i koaning/recursion:0.1 /bin/bash
+python2.7 -m timeit '"-".join(str(n) for n in range(100000))'
+python2.7 -m timeit 'import random; sum([random.random() for i in range(500000)])'
+python2.7 -m timeit 'import random; import math; sum([math.sqrt(random.random()) for i in range(500000)])'
+```
+
+#### Results 
+
+#### Conclusion 
