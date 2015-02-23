@@ -36,7 +36,7 @@ function createAudioElement(urls) {
 }
 
 function playAudio(){
-    var audio = createAudioElement(['Untitled.mp3' ]);      
+    var audio = createAudioElement(['Untitled.mp3']);      
     if(audio){
         var source = audioContext.createMediaElementSource(audio);
         source.connect(analyser);
@@ -54,7 +54,7 @@ function demo(){
 		var freqByteData = new Uint8Array(analyser.frequencyBinCount);
 		analyser.getByteFrequencyData(freqByteData);
 		if( d3.median(_.filter(freqByteData, function(d,i){ return i < 341})) > 105 ){
-			d3.select("#demo").style("background-color", "#cccccc")
+			d3.select("#demo").style("background-color","#cccccc")
 		}else{
 			d3.select("#demo").style("background-color","#ffffff")
 		}
