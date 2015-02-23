@@ -1,0 +1,36 @@
+---
+title: "moaR dplyR sugaR"
+author: "Vincent D. Warmerdam @GoDataDriven"
+output: ioslides_presentation
+---
+
+## Why R?
+
+- Odd programming language. 
+- Lot's of sugar! 
+- Lot's of packages! 
+- Domain Specific 
+
+## What do we want to use R for? 
+
+![](http://www.halobi.com/images/data-scientist.jpg)
+
+## What do we actually use R for? 
+
+![](http://i.imgur.com/9j4RxYI.png)
+
+## Dplyr
+
+... the de-facto packages to handle this annoying 80% so that you can spend more time doing sexy data science. 
+
+
+```{r}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
