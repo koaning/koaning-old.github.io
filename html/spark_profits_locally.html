@@ -1,0 +1,203 @@
+	<meta name='viewport' content="width=device-width">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<script src="/js/prism.js"></script>
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+	<link rel="stylesheet" href="/css/prism.css">
+	<link rel="stylesheet" href="../css/style.css"></link>
+	<style>
+	body {
+	  padding-top: 30px;
+	}
+	.starter-template {
+	  padding: 40px 15px;
+	  text-align: center;
+	}
+	pre{
+		border:0px;
+		border-radius: 0px; 
+	}
+	code{
+		background-color: #f5f5f5;
+		color: black;
+	}
+
+	iframe.graph{
+		border: 0;
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+	
+	img.center {
+	    display: block;
+	    margin-left: auto;
+	    margin-right: auto;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<a href="/">back to main</a>	
+			<br> <br> 
+			<body>
+<h1>Local Spark</h1>
+
+<p><img class="center"src="/img/spark.png" width="50%"/></p>
+
+
+<p><a href="https://spark.apache.org">Spark</a> is very cool. It's like writing code and never having to worry about parallelism. This is nice if you have a cluster but also if your local machine has multiple cores. No need for extra packages or workarounds, the api will handle the scaling automatically.</p>
+
+<h2>Show of force</h2>
+
+<p>Suppose I run the following parallel spark code;</p>
+
+<pre><code>val count = spark.parallelize(1 to 100000000).map{i =&gt;
+  val x = Math.random()
+  val y = Math.random()
+  if (x*x + y*y &lt; 1) 1 else 0
+}.reduce(_ + _)
+</code></pre>
+
+<p>The moment that I run this code, the <code>top</code> command in my terminal will show that I'm almost reaching the full 800% of 8-core mac cpu power.</p>
+
+<p><img src="http://imgur.com/ec2m4lH.png" alt="" /></p>
+
+<p>That's 8x more computing power that's available to you as a programmer just by following the standard spark api. No multicore library needed.</p>
+
+<h2>More numbers</h2>
+
+<p>To show the potential gain in performance I've set up two benchmarks to compare local spark to local python. One will count bins from a uniform distribution through and the other will aggregate a large data file. I will use the ipython notebook <code>%%time</code> magic and the following scala function to measure the performance:</p>
+
+<pre><code>def time[A](f: =&gt; A) = {
+  val s = System.nanoTime
+  val ret = f
+  println("time: "+(System.nanoTime-s)/1e6+"ms")
+  ret
+}
+</code></pre>
+
+<h2>Binning random numbers</h2>
+
+<h5><b>Python Code 3min 23s</b></h5>
+
+<p>The quickest way for python without extra hassle involves using vectorized numpy.</p>
+
+<pre><code>[len(i) for i in pd.cut(np.random.uniform(0,1,10000000),100)]
+</code></pre>
+
+<h5><b>Scala Spark Code 25.2s</b></h5>
+
+<p>Notice that the scala spark code hardly has to be verbose. You only need to appreciate the functional method chaining.</p>
+
+<pre><code>sc.parallelize(1 to 100000000)
+  .map(_ =&gt; scala.util.Random.nextDouble())
+  .map(x =&gt; (x - x % 0.01, 1))
+  .reduceByKey( (a,b) =&gt; a + b )
+  .collect()
+</code></pre>
+
+<h5><b>Fast Scala Spark Code 1.6 s</b></h5>
+
+<p>Spark also has support for creating random variables instead of casting random variables as an intermediate <code>.map</code> step. It's like using <code>numpy</code> instead of normal python but in spark with scala.</p>
+
+<pre><code>import org.apache.spark.SparkContext
+import org.apache.spark.mllib.random.RandomRDDs._
+uniformRDD(sc, 100000000, 10).sum()
+</code></pre>
+
+<h2>Handling large files</h2>
+
+<p>I took a 1.1Gb .csv file from my local drive to do some benchmarks as well. Here's a small hint at performance for just opening the file and doing a linecount:</p>
+
+<h5><b>Python 13.3 s</b></h5>
+
+<pre><code>df = pd.read_csv("/some/path/largefile.csv")
+df.shape
+</code></pre>
+
+<h5><b>Scala Spark 1.8s</b></h5>
+
+<pre><code>val txtfile = sc.textFile("/some/path/largefile.csv")
+txtfile.count()
+</code></pre>
+
+<h5><b>Bash 1.0s</b></h5>
+
+<pre><code>$ time wc -l /some/path/largefile.csv
+real    0m1.002s
+user    0m0.786s
+sys     0m0.213s
+</code></pre>
+
+<h3>Aggregation</h3>
+
+<p>Aggregation would make a better indication of performance in a real life scenario. Here I aggregate the sum on the third column of a file and show the top 100.</p>
+
+<h5><b>Python 11.1s</b></h5>
+
+<p>For the python code I excluded the 13.3s needed to load in the file.</p>
+
+<pre><code>df.groupby(['col3']).count().sort("col3").head(100)['col3']
+</code></pre>
+
+<h5><b>Scala Spark 4.6s</b></h5>
+
+<pre><code>val txtfile = sc.textFile("/some/path/largefile.csv")
+txtfile.map(line =&gt; line.split(" ")(3)).map( x =&gt; (x, 1) ).reduceByKey((a,b) =&gt; a + b)
+  .map(item =&gt; item.swap)
+  .sortByKey(false, 1)
+  .map(item =&gt; item.swap)
+  .take(100)
+</code></pre>
+
+<h1>Conclusion</h1>
+
+<p>Benchmarks are always stenchmarks because there are ways to get more juice out of pandas. Still, the numpy/pandas stack of python is one of the most performant pieces of python and with some basic examples spark seems to be outperforming without any trouble.</p>
+
+<p>The api of numpy and pandas still seems more convenient for middle sized data. For bigger datasets, spark provides an easy enough api that is fast and flexible. I've only scratched the surface here as spark also offers scalable machine learning algorithms as well as graph analysis tools.</p>
+
+<p>Did I mention you can also run all of this on a Hadoop cluster? Profit!</p>
+</body>
+			
+	</div>	
+	
+
+
+
+
+
+	<div class="row">
+		<a href="/">back to main</a>
+   		<div id="disqus_thread"></div>
+	    <script type="text/javascript">
+		        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		        var disqus_shortname = 'koaningcom'; // required: replace example with your forum shortname
+
+		        /* * * DON'T EDIT BELOW THIS LINE * * */
+		        (function() {
+		            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+		            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+		        })();
+	    </script>
+	    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+	    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+	</div>
+	
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-28011256-5', 'auto');
+  ga('send', 'pageview');
+
+</script>
